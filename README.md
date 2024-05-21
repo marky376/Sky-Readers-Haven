@@ -8,9 +8,10 @@ Sky Readers Haven is an online bookstore. This document provides a comprehensive
 
 ## Architecture
 
-The architecture of Sky Readers Haven is designed to be modular and scalable, utilizing a microservices approach to handle different functionalities independently. 
+The architecture of Sky Readers Haven is designed to be modular and scalable, utilizing a microservices approach to handle different functionalities independently.
 
 ### Overview Diagram
+
 *(Include a high-level diagram here depicting the components and their interactions.)*
 
 - **Frontend:** React.js for building the user interface.
