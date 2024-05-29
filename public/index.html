@@ -6,8 +6,46 @@
     <title>Sky Readers Haven</title>
     <link rel="stylesheet" href="index.css">
     <style>
+        header {
+        background-color: #333;
+        color: #fff;
+        padding: 1em 0;
+        text-align: center;
+    }
+    nav ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+    }
+    nav ul li {
+        margin: 0 1em;
+    }
+    nav ul li a {
+        color: #fff;
+        text-decoration: none;
+    }
+    /* Added styles for the search bar */
+    form {
+        margin-top: 1em; /* Adjust as needed */
+    }
+    input[type="text"] {
+        padding: 0.5em;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: #f8f8f8; /* Background color for the search bar */
+    }
+    button[type="submit"] {
+        padding: 0.5em 1em;
+        border-radius: 5px;
+        background-color: #073261; /* Background color for the search button */
+        color: #fff;
+        border: none;
+        cursor: pointer;
+    }
         body {
-            display:flex;
+            display: flex;
             flex-direction: column;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -17,7 +55,7 @@
         }
         header {
             background-color: #333;
-            color: rgb(114, 12, 92);
+            color: #fff;
             padding: 1em 0;
             text-align: center;
         }
@@ -32,14 +70,14 @@
             margin: 0 1em;
         }
         nav ul li a {
-            color: rgb(104, 12, 67);
+            color: #fff;
             text-decoration: none;
         }
         .container {
             max-width: 1200px;
             margin: 2em auto;
             padding: 1em;
-            background-color: rgb(62, 9, 175);
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         .featured-books, .testimonials {
@@ -59,12 +97,11 @@
         }
         .cta a {
             background-color: #073261;
-            color: hsl(161, 59%, 28%);
+            color: #fff;
             padding: 1em 2em;
             text-decoration: none;
             border-radius: 5px;
         }
-        /* BEGIN: Custom Styles */
         .container {
             background-color: #cfe2f3;
             border-radius: 10px;
@@ -113,7 +150,6 @@
             color: white;
             margin-top: 0;
         }
-        /* END: Custom Styles */
     </style>
 </head>
 <body>
@@ -127,6 +163,11 @@
                 <li><a href="/docs">API Documentation</a></li>
             </ul>
         </nav>
+        <!-- Search Bar -->
+        <form action="/search" method="GET">
+            <input type="text" name="query" placeholder="Search for books...">
+            <button type="submit">Search</button>
+        </form>
     </header>
 
     <div class="container">
@@ -153,18 +194,18 @@
         <section class="testimonials">
             <h2>User Testimonials</h2>
             <p>"Sky Readers Haven is a fantastic platform for book lovers. The selection is amazing, and the user experience is top-notch!" - User A</p>
-            <p>"I found my new favorite book thanks to Sky Readers Haven. Highly recommend to all avid readers!" - User B</p>
-        </section>
+            <p>"I found my new favorite book thanks to Sky Readers Haven.
+            </section>
 
-        <section class="cta">
-            <h2>Join Us Today</h2>
-            <p>Discover a world of books and start your reading journey with Sky Readers Haven.</p>
-            <a href="/signup">Sign Up Now</a>
-        </section>
-    </div>
-
-    <footer>
-        <p>&copy; 2024 Sky Readers Haven. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+            <section class="cta">
+                <h2>Join Us Today</h2>
+                <p>Discover a world of books and start your reading journey with Sky Readers Haven.</p>
+                <a href="/signup">Sign Up Now</a>
+            </section>
+        </div>
+    
+        <footer>
+            <p>&copy; 2024 Sky Readers Haven. All rights reserved.</p>
+        </footer>
+    </body>
+    </html>

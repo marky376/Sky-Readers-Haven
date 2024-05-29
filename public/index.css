@@ -1,0 +1,148 @@
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://www.freepik.com/free-photo/bookshelf-blurred-background_11457912.htm#page=1&query=bookstore%20background&position=0'); /* Replace 'background-image.jpg' with the path to your image */
+    background-size: cover;
+    background-position: center;
+    color: #333;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1em 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+}
+
+nav ul li {
+    margin: 0 1em;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+form {
+    margin-top: 1em;
+}
+
+input[type="text"] {
+    padding: 0.5em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+}
+
+button[type="submit"] {
+    padding: 0.5em 1em;
+    border-radius: 5px;
+    background-color: #073261;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2em auto;
+    padding: 1em;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.featured-books, .testimonials {
+    margin-bottom: 2em;
+}
+
+.book {
+    display: flex;
+    margin-bottom: 1em;
+}
+
+.book img {
+    max-width: 150px;
+    margin-right: 1em;
+}
+
+.cta {
+    text-align: center;
+    margin-top: 2em;
+}
+
+.cta a {
+    background-color: #073261;
+    color: #fff;
+    padding: 1em 2em;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.container {
+    background-color: #cfe2f3;
+    border-radius: 10px;
+    padding: 2em;
+}
+
+.featured-books {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 2em;
+}
+
+.book {
+    background-color: #fff;
+    padding: 1em;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.book img {
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+.book h3 {
+    color: #073261;
+    margin-top: 0.5em;
+}
+
+.book p {
+    color: #555;
+}
+
+.testimonials {
+    background-color: #fff;
+    padding: 1em;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.testimonials p {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 1em;
+}
+
+.cta {
+    background-color: #073261;
+    color: white;
+    padding: 2em;
+    border-radius: 10px;
+}
+
+.cta h2 {
+    color: white;
+    margin-top: 0;
+}
