@@ -21,3 +21,7 @@ typing_extensions==4.11.0
 flask==2.1.1
 requests==2.26.0
 flask-cors==3.1.1
+flask-restful==0.3.9
+flask-jwt-extended==4.2.3
+flask-sqlalchemy==2.5.1
+werkzeug==2.0.3
