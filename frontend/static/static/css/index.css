@@ -4,10 +4,11 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-image: url('https://www.freepik.com/free-photo/bookshelf-blurred-background_11457912.htm#page=1&query=bookstore%20background&position=0'); /* Replace 'background-image.jpg' with the path to your image */
+    background-image: url('https://www.freepik.com/free-photo/bookshelf-blurred-background_11457912.htm#page=1&query=bookstore%20background&position=0');
     background-size: cover;
     background-position: center;
     color: #333;
+    background-color: #cfe2f3; /* Light blue background color */
 }
 
 header {
@@ -60,6 +61,7 @@ button[type="submit"] {
     padding: 1em;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
 .featured-books, .testimonials {
@@ -87,12 +89,6 @@ button[type="submit"] {
     padding: 1em 2em;
     text-decoration: none;
     border-radius: 5px;
-}
-
-.container {
-    background-color: #cfe2f3;
-    border-radius: 10px;
-    padding: 2em;
 }
 
 .featured-books {
@@ -145,4 +141,14 @@ button[type="submit"] {
 .cta h2 {
     color: white;
     margin-top: 0;
+}
+
+footer {
+    text-align: center;
+    padding: 1em;
+    background-color: #333;
+    color: white;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 }

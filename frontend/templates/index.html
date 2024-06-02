@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sky Readers Haven</title>
-    <link rel="stylesheet" href="index.css">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
     <header>
@@ -26,10 +25,23 @@
     </header>
 
     <div class="container">
+        <!-- About the Project Section -->
+        <section class="project-info">
+            <h2>About Sky Readers Haven</h2>
+            <p>Welcome to Sky Readers Haven, your go-to online bookstore for a delightful reading experience. We offer a carefully curated selection of books across various genres. Explore, discover, and immerse yourself in the world of literature with us.</p>
+        </section>
+
+        <!-- About the Developer Section -->
+        <section class="about-developer">
+            <h2>About the Developer</h2>
+            <p>Meet Mark Munyao, the creator behind Sky Readers Haven. As a dedicated software developer with a passion for technology and innovation, Mark strives to deliver exceptional digital experiences. Follow Mark's journey and explore the possibilities of cloud computing and software development.</p>
+        </section>
+
+        <!-- Featured Books Section -->
         <section class="featured-books">
             <h2>Featured Books</h2>
             <div class="book">
-                <img src="book1.jpg" alt="Book 1">
+                <img src="{{ url_for('static', filename='book1.jpg') }}" alt="Book 1">
                 <div>
                     <h3>Book Title 1</h3>
                     <p>Author: John Doe</p>
@@ -37,7 +49,7 @@
                 </div>
             </div>
             <div class="book">
-                <img src="book2.jpg" alt="Book 2">
+                <img src="{{ url_for('static', filename='book2.jpg') }}" alt="Book 2">
                 <div>
                     <h3>Book Title 2</h3>
                     <p>Author: Jane Smith</p>
@@ -46,21 +58,27 @@
             </div>
         </section>
 
+        <!-- Testimonials Section -->
         <section class="testimonials">
             <h2>User Testimonials</h2>
             <p>"Sky Readers Haven is a fantastic platform for book lovers. The selection is amazing, and the user experience is top-notch!" - User A</p>
-            <p>"I found my new favorite book thanks to Sky Readers Haven.
-            </section>
+            <p>"I found my new favorite book thanks to Sky Readers Haven." - User B</p>
+        </section>
 
-            <section class="cta">
-                <h2>Join Us Today</h2>
-                <p>Discover a world of books and start your reading journey with Sky Readers Haven.</p>
-                <a href="/signup">Sign Up Now</a>
-            </section>
+        <!-- Call to Action Section -->
+        <section class="cta">
+            <h2>Join Us Today</h2>
+            <p>Start your reading journey with Sky Readers Haven. Sign up now and explore a world of books.</p>
+            <a href="/signup">Sign Up Now</a>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Sky Readers Haven. All rights reserved.</p>
+        <div>
+            <a href="https://github.com/marky376/Sky-Readers-Haven">GitHub</a> |
+            <a href="https://deployed-app-link.com">Deployed App</a>
         </div>
-    
-        <footer>
-            <p>&copy; 2024 Sky Readers Haven. All rights reserved.</p>
-        </footer>
-    </body>
-    </html>
+    </footer>
+</body>
+</html>
