@@ -3,36 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up - Sky Readers Haven</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="password"],
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        span.error {
+            color: red;
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Sign Up</h2>
-    <form method="POST" action="{{ url_for('signup') }}">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.email.label }}
-            {{ form.email(size=32) }}
-            {% for error in form.email.errors %}
-                <span style="color: red;">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.password.label }}
-            {{ form.password(size=32) }}
-            {% for error in form.password.errors %}
-                <span style="color: red;">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.confirm_password.label }}
-            {{ form.confirm_password(size=32) }}
-            {% for error in form.confirm_password.errors %}
-                <span style="color: red;">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <form method="POST" action="{{ url_for('signup') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                <label for="email">Email:</label>
+                {{ form.email(size=32) }}
+                {% for error in form.email.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                {{ form.password(size=32) }}
+                {% for error in form.password.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div>
+                <label for="confirm_password">Confirm Password:</label>
+                {{ form.confirm_password(size=32) }}
+                {% for error in form.confirm_password.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div>
+                <button type="submit">Sign Up</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

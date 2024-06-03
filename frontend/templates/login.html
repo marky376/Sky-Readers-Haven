@@ -4,7 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sky Readers Haven</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin-right: 10px;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="password"],
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button[type="submit"] {
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+    </style>
 </head>
 <body>
     <header>
