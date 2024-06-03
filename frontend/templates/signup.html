@@ -3,32 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Sky Readers Haven</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Sign Up</title>
 </head>
 <body>
-    <header>
-        <h1>Sky Readers Haven</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/signup">Sign Up</a></li>
-                <li><a href="/login">Login</a></li>
-            </ul>
-        </nav>
-    </header>
-    <div class="container">
-        <h2>Sign Up</h2>
-        <form method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Sign Up</button>
-        </form>
-    </div>
-    <footer>
-        <p>&copy; 2024 Sky Readers Haven. All rights reserved.</p>
-    </footer>
+    <h2>Sign Up</h2>
+    <form method="POST" action="{{ url_for('signup') }}">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.email.label }}
+            {{ form.email(size=32) }}
+            {% for error in form.email.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.password.label }}
+            {{ form.password(size=32) }}
+            {% for error in form.password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password(size=32) }}
+            {% for error in form.confirm_password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
 </body>
 </html>
