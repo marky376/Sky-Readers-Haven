@@ -42,30 +42,39 @@ class SignupForm(FlaskForm):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('base.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    form = SignupForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(name=form.name.data, email=form.email.data, password=form.password.data)
-        db.session.add(user)
-        db.session.commit()
+    if request.method == 'POST':
+        form = SignupForm()
+        if form.validate_on_submit():
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            user = User(name=form.name.data, email=form.email.data, password=form.password.data)
+            db.session.add(user)
+            db.session.commit()
 
-        token = s.dumps(form.email.data, salt='email-confirm')
-        msg = Message('Confirm Email', sender='noreply@demo.com', recipients=[form.email.data])
-        link = url_for('confirm_email', token=token, _external=True)
-        msg.body = 'Your link is {}'.format(link)
-        mail.send(msg)
+            token = s.dumps(form.email.data, salt='email-confirm')
+            msg = Message('Confirm Email', sender='noreply@demo.com', recipients=[form.email.data])
+            link = url_for('confirm_email', token=token, _external=True)
+            msg.body = 'Your link is {}'.format(link)
+            mail.send(msg)
 
-        flash('A confirmation email has been sent via email.', 'success')
-        return redirect(url_for('login'))
-        
-    return render_template('signup.html', form=form)
+            flash('A confirmation email has been sent via email.', 'success')
+            return redirect(url_for('login'))
+            
+    return render_template('signup.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.check_password_hash(user.password, password):
+            return redirect(url_for('home'))
+        else:
+            flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html')
 
 @app.route('/confirm_email/<token>')
