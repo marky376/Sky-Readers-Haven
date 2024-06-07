@@ -6,6 +6,7 @@
     <title>Login - Sky Readers Haven</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
+        /* Styling for the body */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -16,21 +17,29 @@
             background-size: cover;
             background-position: center;
         }
+        
+        /* Styling for the header */
         header {
             background-color: transparent;
             color: #fff;
             padding: 10px 0;
+            /* Align the text in the header to the center */
             text-align: center;
         }
+        
+        /* Styling for the navigation menu */
         nav ul {
             list-style-type: none;
             margin: 0;
             padding: 0;
         }
+        
         nav ul li {
             display: inline;
             margin-right: 10px;
         }
+        
+        /* Styling for the container */
         .container {
             width: 80%;
             margin: 20px auto;
@@ -40,13 +49,17 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(20px);
         }
+        
+        /* Styling for the form */
         form {
             margin-top: 20px;
         }
+        
         label {
             display: block;
             margin-bottom: 5px;
         }
+        
         input[type="text"],
         input[type="password"],
         button[type="submit"] {

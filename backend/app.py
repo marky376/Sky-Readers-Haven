@@ -46,6 +46,18 @@ def home():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    Handle the signup route.
+
+    If the request method is POST, validate the signup form.
+    If the form is valid, create a new user, add it to the database, and send a confirmation email.
+    Flash a success message and redirect to the login page.
+    If the request method is GET, render the signup template.
+
+    Returns:
+        If the request method is POST and the form is valid, redirect to the login page.
+        If the request method is GET, render the signup template.
+    """
     if request.method == 'POST':
         form = SignupForm()
         if form.validate_on_submit():

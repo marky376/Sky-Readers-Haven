@@ -1,17 +1,18 @@
+/* Reset styles for all elements */
 *{
     margin: 0;
     padding: 0;
     text-decoration: none;
     list-style: none;
     font-family: "poppins";
-
 }
 
+/* Styling for the navbar */
 .navbar{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    text-align: center;;
+    text-align: center; /* Center align the text within the navbar */
     width: 100%;
     height: 80px;
     background: #072019;

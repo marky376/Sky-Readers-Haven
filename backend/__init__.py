@@ -4,6 +4,12 @@ from .models import db
 from .config import Config
 
 def create_app():
+    """
+    Creates and configures the Flask application.
+
+    Returns:
+        app (Flask): The configured Flask application.
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
 

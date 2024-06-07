@@ -28,6 +28,14 @@ def login():
 @main.route('/search', methods=['GET'])
 @jwt_required()
 def search():
+    """
+    Search for books based on the provided query parameter.
+
+    Returns:
+        If books are found, a JSON response containing the books.
+        If no books are found, a JSON response with an error message and status code 404.
+        If the query parameter is missing, a JSON response with an error message and status code 400.
+    """
     from .api_integration import search_books  # Import here to avoid circular import
     query = request.args.get('query')
     if query:
