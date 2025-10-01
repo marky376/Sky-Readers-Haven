@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ book.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    </head>
+<body>
+    {% include 'base_nav.html' %}
+    <main class="container">
+        <div class="detail">
+            <div style="display:flex;gap:20px;align-items:flex-start">
+                <img src="{{ book.image or url_for('static', filename='images/book.png') }}" style="width:240px;height:320px;object-fit:cover;border-radius:8px">
+                <div>
+                    <h1>{{ book.title }}</h1>
+                    <p class="authors">{{ book.authors|join(', ') if book.authors else 'Unknown' }}</p>
+                    <p class="published">Published: {{ book.publishedDate or 'N/A' }}</p>
+                    <div style="margin-top:12px">{{ book.description|default('No description available') }}</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

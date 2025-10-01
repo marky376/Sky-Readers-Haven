@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sky Readers Haven</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% include 'base_nav.html' %}
+
+    <main class="form-page">
+        <div class="form-card">
+            <h2>Sign in to your account</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul class="flashes">
+                  {% for category, msg in messages %}
+                    <li class="flash {{ category }}">{{ msg }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('main.login') }}" id="login-form">
+                <label>Username or Email</label>
+                <input name="username" required>
+
+                <label>Password</label>
+                <input type="password" name="password" required>
+
+                <button class="primary" type="submit">Login</button>
+            </form>
+            <p class="muted">New here? <a href="{{ url_for('main.signup') }}">Create an account</a></p>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

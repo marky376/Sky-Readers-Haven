@@ -1,0 +1,51 @@
+<header class="site-header">
+    <div class="brand">
+        <a href="{{ url_for('main.home') }}">
+            <i class='bx bx-book-reader'></i>
+            <span>Sky Readers Haven</span>
+        </a>
+    </div>
+    
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="menu-icon" aria-label="Toggle menu">
+        <i class='bx bx-menu'></i>
+    </button>
+    
+    <nav class="site-nav" id="navmenu">
+        <a href="{{ url_for('main.home') }}" class="nav-link">
+            <i class='bx bx-home-alt'></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('main.books') }}" class="nav-link">
+            <i class='bx bx-book'></i>
+            <span>Books</span>
+        </a>
+        <a href="{{ url_for('main.about') }}" class="nav-link">
+            <i class='bx bx-info-circle'></i>
+            <span>About</span>
+        </a>
+        <a href="{{ url_for('main.contact') }}" class="nav-link">
+            <i class='bx bx-envelope'></i>
+            <span>Contact</span>
+        </a>
+        {% if not session.get('username') %}
+            <a class="cta cta-signup" href="{{ url_for('main.signup') }}">
+                <i class='bx bx-user-plus'></i>
+                <span>Sign Up</span>
+            </a>
+            <a class="cta cta-login" href="{{ url_for('main.login') }}">
+                <i class='bx bx-log-in'></i>
+                <span>Login</span>
+            </a>
+        {% else %}
+            <div class="user-menu">
+                <i class='bx bx-user-circle'></i>
+                <span class="user-name">{{ session.get('username') }}</span>
+                <a href="{{ url_for('main.logout') }}" class="logout-link">
+                    <i class='bx bx-log-out'></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        {% endif %}
+    </nav>
+</header>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Sky Readers Haven</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'base_nav.html' %}
+
+    <!-- About Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <div class="about-hero-content">
+                <span class="hero-badge">📖 About Us</span>
+                <h1>Welcome to <span class="gradient-text">Sky Readers Haven</span></h1>
+                <p class="hero-subtitle">Your gateway to millions of books and endless stories</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Our Mission</h2>
+                    <p>
+                        At Sky Readers Haven, we believe that books have the power to transform lives, 
+                        expand horizons, and connect people across the globe. Our mission is to make 
+                        reading accessible to everyone by providing a comprehensive platform where 
+                        readers can discover, explore, and immerse themselves in the world of literature.
+                    </p>
+                    <p>
+                        Founded in 2024, we've grown from a small book enthusiast community to a 
+                        thriving platform serving thousands of readers worldwide. We're passionate 
+                        about connecting people with the books they love and helping them discover 
+                        new favorites along the way.
+                    </p>
+                </div>
+                <div class="about-image">
+                    <div class="image-placeholder">
+                        <i class='bx bx-book-heart'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values-section">
+        <div class="container">
+            <h2 class="section-title">Our Core Values</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class='bx bx-book-open'></i>
+                    </div>
+                    <h3>Accessibility</h3>
+                    <p>Making literature accessible to everyone, everywhere, at any time.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class='bx bx-shield-alt-2'></i>
+                    </div>
+                    <h3>Quality</h3>
+                    <p>Curating high-quality content from trusted publishers and authors.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class='bx bx-group'></i>
+                    </div>
+                    <h3>Community</h3>
+                    <p>Building a vibrant community of readers, writers, and book lovers.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class='bx bx-bulb'></i>
+                    </div>
+                    <h3>Innovation</h3>
+                    <p>Constantly improving our platform with the latest technology.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <i class='bx bx-book'></i>
+                    <h3>1M+</h3>
+                    <p>Books Available</p>
+                </div>
+                <div class="stat-box">
+                    <i class='bx bx-user'></i>
+                    <h3>50K+</h3>
+                    <p>Active Readers</p>
+                </div>
+                <div class="stat-box">
+                    <i class='bx bx-category'></i>
+                    <h3>100+</h3>
+                    <p>Categories</p>
+                </div>
+                <div class="stat-box">
+                    <i class='bx bx-globe'></i>
+                    <h3>150+</h3>
+                    <p>Countries Served</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <h2 class="section-title">Meet Our Team</h2>
+            <p class="section-subtitle">Passionate book lovers dedicated to serving our community</p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class='bx bx-user-circle'></i>
+                    </div>
+                    <h3>John Doe</h3>
+                    <p class="team-role">Founder & CEO</p>
+                    <p class="team-bio">Book enthusiast with 15 years in tech</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class='bx bx-user-circle'></i>
+                    </div>
+                    <h3>Jane Smith</h3>
+                    <p class="team-role">Head of Content</p>
+                    <p class="team-bio">Former librarian and literature professor</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class='bx bx-user-circle'></i>
+                    </div>
+                    <h3>Mike Johnson</h3>
+                    <p class="team-role">Lead Developer</p>
+                    <p class="team-bio">Tech wizard who loves science fiction</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Join Our Reading Community Today!</h2>
+                <p>Discover millions of books and connect with fellow readers</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('main.signup') }}" class="btn-large btn-primary">
+                        <i class='bx bx-user-plus'></i>
+                        Get Started Free
+                    </a>
+                    <a href="{{ url_for('main.books') }}" class="btn-large btn-secondary">
+                        <i class='bx bx-book-open'></i>
+                        Browse Books
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Sky Readers Haven. All rights reserved.</p>
+            <p>Made with <i class='bx bx-heart'></i> for book lovers everywhere</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

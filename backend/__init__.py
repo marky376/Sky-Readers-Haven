@@ -1,25 +1,4 @@
-from flask import Flask
-from flask_jwt_extended import JWTManager
-from .models import db
-from .config import Config
+# Backend package initialization
+from .app import create_app, db, mail, migrate, jwt
 
-def create_app():
-    """
-    Creates and configures the Flask application.
-
-    Returns:
-        app (Flask): The configured Flask application.
-    """
-    app = Flask(__name__)
-    app.config.from_object(Config)
-
-    db.init_app(app)
-    jwt = JWTManager(app)
-
-    with app.app_context():
-        db.create_all()  # Create database tables for our data models
-
-    from .routes import main
-    app.register_blueprint(main)
-
-    return app
+__all__ = ['create_app', 'db', 'mail', 'migrate', 'jwt']

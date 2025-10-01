@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Sky Readers Haven</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'base_nav.html' %}
+
+    <!-- Contact Hero Section -->
+    <section class="contact-hero">
+        <div class="container">
+            <div class="contact-hero-content">
+                <span class="hero-badge">✉️ Get In Touch</span>
+                <h1>Contact <span class="gradient-text">Sky Readers Haven</span></h1>
+                <p class="hero-subtitle">We'd love to hear from you! Drop us a message anytime.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Form -->
+                <div class="contact-form-wrapper">
+                    <h2>Send Us a Message</h2>
+                    <form action="#" method="post" class="contact-form">
+                        {% with messages = get_flashes_messages(with_categories=true) %}
+                            {% if messages %}
+                                <ul class="flashes">
+                                    {% for category, message in messages %}
+                                        <li class="flash {{ category }}">{{ message }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <div class="form-group">
+                            <label for="name">
+                                <i class='bx bx-user'></i>
+                                Your Name
+                            </label>
+                            <input type="text" id="name" name="name" placeholder="John Doe" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">
+                                <i class='bx bx-envelope'></i>
+                                Your Email
+                            </label>
+                            <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">
+                                <i class='bx bx-message-rounded'></i>
+                                Subject
+                            </label>
+                            <input type="text" id="subject" name="subject" placeholder="How can we help?" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">
+                                <i class='bx bx-message-detail'></i>
+                                Message
+                            </label>
+                            <textarea id="message" name="message" rows="6" placeholder="Tell us more..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class='bx bx-send'></i>
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="contact-info-wrapper">
+                    <h2>Contact Information</h2>
+                    
+                    <div class="contact-info-card">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class='bx bx-map'></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Address</h3>
+                                <p>123 Book Street<br>Reading City, RC 12345<br>United States</p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class='bx bx-phone'></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Phone</h3>
+                                <p>+1 (555) 123-4567<br>Mon-Fri, 9AM-6PM EST</p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class='bx bx-envelope'></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Email</h3>
+                                <p>support@skyreadershaven.com<br>info@skyreadershaven.com</p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class='bx bx-time'></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Business Hours</h3>
+                                <p>Monday - Friday: 9AM - 6PM<br>Saturday: 10AM - 4PM<br>Sunday: Closed</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="social-links">
+                        <h3>Follow Us</h3>
+                        <div class="social-icons">
+                            <a href="#" class="social-icon" aria-label="Facebook">
+                                <i class='bx bxl-facebook'></i>
+                            </a>
+                            <a href="#" class="social-icon" aria-label="Twitter">
+                                <i class='bx bxl-twitter'></i>
+                            </a>
+                            <a href="#" class="social-icon" aria-label="Instagram">
+                                <i class='bx bxl-instagram'></i>
+                            </a>
+                            <a href="#" class="social-icon" aria-label="LinkedIn">
+                                <i class='bx bxl-linkedin'></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-card">
+                    <h3>How do I create an account?</h3>
+                    <p>Click the "Sign Up" button in the navigation bar and fill out the registration form with your details.</p>
+                </div>
+                <div class="faq-card">
+                    <h3>Is the service free?</h3>
+                    <p>Yes! Sky Readers Haven is completely free to use. Browse and search millions of books at no cost.</p>
+                </div>
+                <div class="faq-card">
+                    <h3>How can I search for books?</h3>
+                    <p>Use the search bar on any page to find books by title, author, ISBN, or keyword.</p>
+                </div>
+                <div class="faq-card">
+                    <h3>Can I suggest new features?</h3>
+                    <p>Absolutely! We love hearing from our users. Send us your suggestions using the contact form above.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Start Reading?</h2>
+                <p>Join thousands of readers exploring millions of books</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('main.signup') }}" class="btn-large btn-primary">
+                        <i class='bx bx-user-plus'></i>
+                        Sign Up Now
+                    </a>
+                    <a href="{{ url_for('main.books') }}" class="btn-large btn-secondary">
+                        <i class='bx bx-book-open'></i>
+                        Browse Catalog
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Sky Readers Haven. All rights reserved.</p>
+            <p>Made with <i class='bx bx-heart'></i> for book lovers everywhere</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

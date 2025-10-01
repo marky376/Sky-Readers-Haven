@@ -3,39 +3,39 @@ Project Overview
 Sky Readers Haven is an innovative online bookstore designed to offer a seamless and enjoyable reading experience for book lovers. This document provides a comprehensive architectural overview of the system, detailing various components and their interactions.
 
 Architecture
-The architecture of Sky Readers Haven is modular and scalable, leveraging a microservices approach to handle different functionalities independently.
+The architecture of Sky Readers Haven is built using Flask as a full-stack web framework, providing both backend API functionality and frontend template rendering.
 
 Overview Diagram
 (Include a high-level diagram here depicting the components and their interactions.)
 
-Frontend: React.js for building the user interface.
-Backend: Django REST Framework for developing APIs.
-Database: PostgreSQL for data storage.
+Frontend: Flask Jinja2 templates with HTML, CSS, and JavaScript for the user interface.
+Backend: Flask web framework with RESTful API endpoints.
+Database: SQLite (development) / PostgreSQL (production) for data storage.
+External APIs: Google Books API for book catalog integration.
 Cloud: AWS for deployment and scalability.
 Component Breakdown
-Frontend: Handles user interaction and displays data fetched from the backend.
-Backend: Processes requests, interacts with the database, and serves responses through APIs.
-Database: Stores user data, book information, and transaction records.
+Frontend: Flask Jinja2 templates handle user interaction and display data from the backend.
+Backend: Flask processes requests, interacts with the database, and serves both web pages and API responses.
+Database: SQLAlchemy ORM stores user data, book information, and transaction records.
+External Services: Google Books API provides comprehensive book catalog data.
 Cloud Services: Hosts the application, provides storage solutions, and manages load balancing.
 APIs and Methods
-Sky Readers Haven utilizes RESTful APIs to communicate between the frontend and backend. Below are some of the key endpoints:
+Sky Readers Haven utilizes both traditional web routes for page rendering and RESTful API endpoints for dynamic functionality. Below are some of the key endpoints:
 
 Authentication
-POST /api/auth/register: Registers a new user.
+POST /signup: Registers a new user with email confirmation.
 
-Request: { "username": "string", "password": "string", "email": "string" }
-Response: { "message": "User registered successfully." }
-POST /api/auth/login: Authenticates a user and returns a token.
+Request: Form data { "name": "string", "email": "string", "password": "string", "confirm_password": "string" }
+Response: Redirects to confirmation page or renders signup form with errors
+POST /login: Authenticates a user and creates a session.
 
-Request: { "username": "string", "password": "string" }
-Response: { "token": "jwt-token" }
-Book Catalog
-GET /api/books: Retrieves a list of all books.
+Request: Form data { "username": "string", "password": "string" }
+Response: JWT token and redirect to dashboard or login form with errors
+Book Search
+GET /search: Searches books using Google Books API (requires authentication).
 
-Response: [ { "id": "int", "title": "string", "author": "string", "price": "float" }, ... ]
-GET /api/books/{id}: Retrieves details of a specific book.
-
-Response: { "id": "int", "title": "string", "author": "string", "price": "float", "description": "string" }
+Request: Query parameter ?query=search_term
+Response: JSON array of book results from Google Books API
 Shopping Cart
 POST /api/cart: Adds a book to the cart.
 

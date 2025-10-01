@@ -1,0 +1,15 @@
+/* src/App.css */
+
+.app {
+  padding: 16px;
+}
+
+.book-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.book-item {
+  margin: 16px;
+}
+

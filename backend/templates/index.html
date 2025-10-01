@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Readers Haven - Your Gateway to Endless Stories</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'base_nav.html' %}
+
+    <!-- Hero Section -->
+    <section class="hero-landing">
+        <div class="hero-content">
+            <div class="hero-text">
+                <span class="hero-badge">📚 Discover Your Next Adventure</span>
+                <h1 class="hero-title">
+                    Welcome to <span class="gradient-text">Sky Readers Haven</span>
+                </h1>
+                <p class="hero-description">
+                    Explore millions of books from around the world. Find your next favorite read,
+                    discover new authors, and immerse yourself in endless stories.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('main.books') }}" class="btn btn-primary">
+                        <i class='bx bx-book-open'></i> Browse Books
+                    </a>
+                    <a href="{{ url_for('main.signup') }}" class="btn btn-secondary">
+                        <i class='bx bx-user-plus'></i> Join Free
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <h3>1M+</h3>
+                        <p>Books Available</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>50K+</h3>
+                        <p>Happy Readers</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>100+</h3>
+                        <p>Categories</p>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="floating-books">
+                    <img src="{{ url_for('static', filename='images/book.png') }}" alt="Books" class="book-float">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <h2 class="section-title">Find Your Perfect Book</h2>
+            <form action="{{ url_for('main.search') }}" method="get" class="search-bar-large">
+                <div class="search-input-wrapper">
+                    <i class='bx bx-search'></i>
+                    <input type="text" name="query" placeholder="Search by title, author, ISBN, or keyword..." required>
+                </div>
+                <button type="submit" class="btn-search-large">
+                    Search Books
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose Sky Readers Haven?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-library'></i>
+                    </div>
+                    <h3>Vast Collection</h3>
+                    <p>Access millions of books across all genres. From classics to bestsellers, we have it all.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-search-alt'></i>
+                    </div>
+                    <h3>Smart Search</h3>
+                    <p>Powered by Google Books API. Find exactly what you're looking for in seconds.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-heart'></i>
+                    </div>
+                    <h3>Personalized</h3>
+                    <p>Create your reading list, save favorites, and get recommendations tailored to you.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-mobile'></i>
+                    </div>
+                    <h3>Read Anywhere</h3>
+                    <p>Responsive design lets you browse seamlessly on any device, anytime, anywhere.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <h3>Always Updated</h3>
+                    <p>Discover the latest releases and trending books updated in real-time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class='bx bx-group'></i>
+                    </div>
+                    <h3>Community</h3>
+                    <p>Join thousands of readers. Share reviews, recommendations, and reading experiences.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section">
+        <div class="container">
+            <h2 class="section-title">Explore Popular Categories</h2>
+            <div class="categories-grid">
+                <a href="{{ url_for('main.search') }}?query=fiction" class="category-card">
+                    <img src="{{ url_for('static', filename='images/fiction.png.jpeg') }}" alt="Fiction">
+                    <div class="category-overlay">
+                        <h3>Fiction</h3>
+                        <p>Dive into imaginary worlds</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=thriller" class="category-card">
+                    <img src="{{ url_for('static', filename='images/thriller.png.jpeg') }}" alt="Thriller">
+                    <div class="category-overlay">
+                        <h3>Thriller</h3>
+                        <p>Edge-of-your-seat suspense</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=horror" class="category-card">
+                    <img src="{{ url_for('static', filename='images/Horror.png.jpeg') }}" alt="Horror">
+                    <div class="category-overlay">
+                        <h3>Horror</h3>
+                        <p>Spine-chilling tales</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=comedy" class="category-card">
+                    <img src="{{ url_for('static', filename='images/comedy.png.jpeg') }}" alt="Comedy">
+                    <div class="category-overlay">
+                        <h3>Comedy</h3>
+                        <p>Laugh out loud stories</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=biography" class="category-card">
+                    <img src="{{ url_for('static', filename='images/biography.png.jpeg') }}" alt="Biography">
+                    <div class="category-overlay">
+                        <h3>Biography</h3>
+                        <p>Real lives, real stories</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=self-help" class="category-card">
+                    <img src="{{ url_for('static', filename='images/growth.png.jpeg') }}" alt="Self Help">
+                    <div class="category-overlay">
+                        <h3>Self Help</h3>
+                        <p>Transform your life</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=adventure" class="category-card">
+                    <img src="{{ url_for('static', filename='images/adventure.png.jpeg') }}" alt="Adventure">
+                    <div class="category-overlay">
+                        <h3>Adventure</h3>
+                        <p>Epic journeys await</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('main.search') }}?query=history" class="category-card">
+                    <img src="{{ url_for('static', filename='images/download.jpeg') }}" alt="History">
+                    <div class="category-overlay">
+                        <h3>History</h3>
+                        <p>Learn from the past</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Start Your Reading Journey Today</h2>
+                <p>Join thousands of book lovers who have already discovered their next favorite read</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('main.signup') }}" class="btn btn-large btn-white">
+                        <i class='bx bx-user-plus'></i> Create Free Account
+                    </a>
+                    <a href="{{ url_for('main.books') }}" class="btn btn-large btn-outline">
+                        <i class='bx bx-book-open'></i> Browse Library
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2 class="section-title">What Our Readers Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">Sky Readers Haven has completely transformed how I discover books. The search is incredibly fast and accurate!</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JD</div>
+                        <div>
+                            <h4>Jane Doe</h4>
+                            <p>Avid Reader</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">I love the clean interface and the vast collection. Finding my next read has never been easier!</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JS</div>
+                        <div>
+                            <h4>John Smith</h4>
+                            <p>Book Enthusiast</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">The personalized recommendations are spot-on. I've discovered so many amazing authors through this platform.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">EB</div>
+                        <div>
+                            <h4>Emma Brown</h4>
+                            <p>Literature Lover</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Sky Readers Haven</h3>
+                    <p>Your gateway to endless stories and knowledge. Discover, read, and grow with millions of books.</p>
+                    <div class="social-links">
+                        <a href="https://web.facebook.com/mark.munyao.904/" target="_blank"><i class='bx bxl-facebook'></i></a>
+                        <a href="https://x.com/mmutuamark" target="_blank"><i class='bx bxl-twitter'></i></a>
+                        <a href="https://www.instagram.com/09.01_tech.star/" target="_blank"><i class='bx bxl-instagram'></i></a>
+                        <a href="https://www.linkedin.com/in/markmutua/" target="_blank"><i class='bx bxl-linkedin'></i></a>
+                        <a href="https://github.com/marky376/Sky-Readers-Haven" target="_blank"><i class='bx bxl-github'></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                        <li><a href="{{ url_for('main.books') }}">Books</a></li>
+                        <li><a href="{{ url_for('main.about') }}">About</a></li>
+                        <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Account</h4>
+                    <ul>
+                        <li><a href="{{ url_for('main.login') }}">Login</a></li>
+                        <li><a href="{{ url_for('main.signup') }}">Sign Up</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Developer</h4>
+                    <p>Designed & Built by <strong>Mark Munyao</strong></p>
+                    <p>Software Developer passionate about creating great user experiences.</p>
+                    <a href="https://github.com/marky376/Sky-Readers-Haven" target="_blank" class="footer-link">
+                        <i class='bx bxl-github'></i> View Project
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Sky Readers Haven. All rights reserved. | Designed by Mark Munyao</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+            
+        <!-- Header start -->
+        <header>
+            <nav class="navbar">
+                    <div class="logo">
+                        <h2>Sky Readers Haven</h2>
+                    </div>
+                    <div class="navmenu">
+                        <ul>
+                            <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                            <li><a href="{{ url_for('main.about') }}">About</a></li>
+                            <li><a href="{{ url_for('main.books') }}">Categories</a></li>
+                            <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                            <li><a href="{{ url_for('main.login') }}">Login</a></li>
+                            <li><a href="{{ url_for('main.signup') }}">Sign Up</a></li>
+
+                        </ul>
+                    
+                    
+                    <div class="search-box">
+                        <input type="search" class="search" placeholder="Search here ...">
+                        <i class='bx bx-search'></i>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="menubar">
+                <i class='bx bx-menu' id="menu-icon"></i>
+
+            </div>
+            <!-- <div class="banner">
+                <div class="content">
+                    <h2>Welcome to Sky Readers Haven</h2>
+                    <p>Read your favorite books here</p>
+                    <a href="#" class="btn">Get Started</a>
+                </div>
+            </div> -->
+            <div class="main-header">
+                <div class="header">
+                    <h5>Sky Readers Haven</h5>
+                    <h2>For All Your Reading Needs</h2>
+                    <p>Discover a world of knowledge and imagination.</p>
+                    <a href="{{ url_for('main.books') }}" class="btn">Read More</a>
+
+                    <img src="{{ url_for('static', filename='images/book.png') }}" alt="The books front page" height="310" width="310">
+
+                                </div>    
+            </div>
+        </header>
+
+
+        <!--categories section start-->
+        <section id="categories">
+            <div class="cat-row">
+               <div class="cat-header">
+                     <h2>Book Categories</h2>
+                     <p>Discover a world of knowledge and imagination.</p>
+               </div>
+
+               <div class="cat-books">
+                <div class="books">
+                    <div class="book.jpg">
+                        <img src="{{ url_for('static', filename='images/growth.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Growth Genre</h4>
+                    <p>Book 1 description</p>
+                    <div class="book2 jpg">
+                        <img src="{{ url_for('static', filename='images/fiction.png.jpeg') }}" alt="">
+                    </div>
+
+                    <h4>Science Fiction</h4>
+                    <p>Book 2 description</p>
+
+                    <div class="book3 jpg">
+                        <img src="{{ url_for('static', filename='images/thriller.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Thriller</h4>
+                    <p>Book 3 description</p>
+
+                    <div class="book4 jpg">
+                        <img src="{{ url_for('static', filename='images/Horror.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Horror</h4>
+                    <p>Book 4 description</p>
+
+                    <div class="book5 jpg">
+                        <img src="{{ url_for('static', filename='images/comedy.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Comedy</h4>
+                    <p>Book 5 description</p>
+
+                    <div class="book6 jpg">
+                        <img src="{{ url_for('static', filename='images/adventure.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Adventure</h4>
+                    <p>Book 6 description</p>
+
+                    <div class="book7 jpg">
+                        <img src="{{ url_for('static', filename='images/biography.png.jpeg') }}" alt="">
+                    </div>
+                    <h4>Biography</h4>
+                    <p>Book 7 description</p>
+                    
+                    <div class="book8 jpg">
+                        <img src="{{ url_for('static', filename='images/download.jpeg') }}" alt="">
+                    </div>
+                    <h4>History</h4>
+                    <p>Book 8 description</p>
+                    
+                    <div class="book9 jpg">
+                        <img src="{{ url_for('static', filename='images/book9.jpg') }}" alt="">
+                    </div>
+                    <h4>Religion</h4>
+                    <p>Book 9 description</p>
+                        
+                    <div class="book10 jpg">
+                        <img src="{{ url_for('static', filename='images/Textbook.png.jpeg') }}" alt="">
+                     </div>
+                    <h4>Self Help</h4>
+                    <p>Book 10 description</p>
+
+
+                </div>
+               </div>
+
+            </div>
+
+        </section>
+
+
+        <!--about section-->
+        <section class="about" id="about">
+            <div class="set-row">
+                <img src="images/about.png.jpeg" alt="">
+                <div class="about-content">
+                    <h2>About Sky Readers Haven</h2>
+                    <p>At Sky Readers Haven, we are dedicated to providing you with the best books in the market. We have a wide range of books that cater to all your reading needs. Our books are of high quality and are written by the best authors in the world. We have books in all genres including fiction, non-fiction, self-help, religion, history, and many more. Our books are affordable and are available in both hard copy and soft copy. We also have a team of dedicated staff who are always ready to help you with any queries you may have. Visit us today and discover a world of knowledge and imagination.</p>
+                    <a href="#" class="btn2">Read More</a>
+            </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!--blog section-->
+        <section class="blog" id="blog">
+            <h2 class="blog-header">Latest Blog Posts</h2>
+            <div class="set-row">
+                <div class="col">
+                    <img src="images/blog1.jpeg" alt="">
+                    <h4>Book Review: The Alchemist</h4>
+                    <p>Read our review of the book The Alchemist by Paulo Coelho. This book is a must-read for anyone who loves adventure and self-discovery. It is a story of a young shepherd named Santiago who goes on a journey to find his personal legend. The book is filled with wisdom and inspiration and is sure to leave you feeling motivated and inspired. Read our review to find out more about this amazing book.</p>
+
+                    <a href="#" class="btn3">Read More</a>
+
+                    <div class="dates">
+                        <span>Posted on 12th May 2021</span>
+                    </div>
+                    <div class="col">
+                        <img src="images/blog2.jpeg" alt="">
+                        <h4>Book Review: The Great Gatsby</h4>
+                        <p>Read our review of the book The Great Gatsby by F. Scott Fitzgerald. This book is a classic novel that tells the story of Jay Gatsby
+                            and his love for Daisy Buchanan. It is a story of love, wealth, and the American Dream. The book is beautifully written and is sure to leave you feeling moved and inspired. Read our review to find out more about this amazing book.</p>
+                        <div class="dates">
+                            <span>Posted on 20th May 2021</span>
+                        </div>
+                        <a href="#" class="btn4">Read More</a>
+                </div>
+
+
+        </div>
+        </section>
+
+        <!--contact section-->
+        <section id="contacts">
+            <div class="contact-row">
+                <div class="col">
+                    <h2>Contact Us</h2>
+
+                    <form action="">
+                        <input type="text" placeholder="Enter your name">
+                        <br>
+                        <input type="email" placeholder="Enter your email">
+                        <br>
+                        <input type="text" placeholder="Phone Number">
+                        <br>
+                        <textarea cols="20" rows="5" placeholder="Enter your message"></textarea>
+                        <br>
+                        <input type="submit" value="Send Message">
+                    </form>
+
+                </div>
+                
+                <div class="col">
+                    <img src="images/contacts.jpeg" alt="">
+                </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!--foo</div>ter section-->
+        <div class="footer">
+            <div class="footer-content">
+                <h2>Sky Readers Haven</h2>
+                <p>For All Your Reading Needs</p>
+                <ul>
+                    <li><a href="https://web.facebook.com/mark.munyao.904/"><i class='bx bxl-facebook'></i></a></li>
+                    <li><a href="https://x.com/mmutuamark"><i class='bx bxl-twitter'></i></a></li>
+                    <li><a href="https://www.instagram.com/09.01_tech.star/"><i class='bx bxl-instagram'></i></a></li>
+                    <li><a href="https://www.linkedin.com/in/markmutua/"><i class='bx bxl-linkedin'></i></a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                &copy; Sky Readers Haven | Designed by Dev. Mark Munyao | All Rights Reserved
+                <section id="about-me">
+                    <h2>About Me</h2>
+                    <p>Hi, I'm Mark Munyao, a passionate software developer with a background in IT and a keen interest in cloud computing, probability and statistics, and RESTful APIs. I enjoy creating projects that solve real-world problems and enhance user experience.</p>
+                </section>
+            
+                <section id="links">
+                    <h2>Links</h2>
+                    <p>Check out my project and my GitHub:</p>
+                    <ul>
+                        <a href="https://github.com/marky376/Sky-Readers-Haven" target="_blank" rel="noopener noreferrer">Github</a>
+                  </div>      
+                    </ul>
+
+                    <div class="video-container">
+                        <a href="https://photos.app.goo.gl/tLkPu26ho77LbwtL9" target="_blank" rel="noopener noreferrer">https://photos.app.goo.gl/tLkPu26ho77LbwtL9</a>
+                    </div>
+
+            </div>
+        </div>
+
+        <!--customer file-->
+        <script src="./index.js"></script>
+
+</body>
+</html>
