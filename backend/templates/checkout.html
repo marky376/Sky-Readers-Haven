@@ -87,12 +87,21 @@
                     </div>
                 </div>
                 
+                <!-- Stripe Card Element -->
+                <div id="card-element-container" style="margin-top: 20px;">
+                    <div id="card-element" style="padding: 12px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                    <div id="card-errors" role="alert" style="color: #dc3545; margin-top: 10px; font-size: 14px;"></div>
+                </div>
+                
                 <div class="form-actions">
                     <a href="{{ url_for('main.view_cart') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Back to Cart
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Place Order
+                    <button type="submit" id="submit-button" class="btn btn-primary">
+                        <span id="button-text"><i class="fas fa-check"></i> Place Order</span>
+                        <span id="button-spinner" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Processing...
+                        </span>
                     </button>
                 </div>
             </form>
@@ -447,8 +456,70 @@
 }
 </style>
 
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+
 <script>
-document.getElementById('checkout-form').addEventListener('submit', function(e) {
+// Initialize Stripe
+let stripe, elements, cardElement;
+let stripePublishableKey;
+
+// Get Stripe configuration
+fetch('/api/stripe/config')
+    .then(response => response.json())
+    .then(data => {
+        stripePublishableKey = data.publishableKey;
+        stripe = Stripe(stripePublishableKey);
+        elements = stripe.elements();
+        
+        // Create card element
+        cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                    '::placeholder': {
+                        color: '#aab7c4'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            }
+        });
+        
+        cardElement.mount('#card-element');
+        
+        // Handle real-time validation errors
+        cardElement.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error loading Stripe:', error);
+        showToast('Error loading payment system', 'error');
+    });
+
+// Toggle card element visibility
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const cardContainer = document.getElementById('card-element-container');
+        if (this.value === 'card') {
+            cardContainer.style.display = 'block';
+        } else {
+            cardContainer.style.display = 'none';
+        }
+    });
+});
+
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const form = this;
@@ -460,34 +531,98 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
     });
     
     // Show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    const submitBtn = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+    
+    buttonText.style.display = 'none';
+    buttonSpinner.style.display = 'inline';
     submitBtn.disabled = true;
     
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            window.location.href = result.redirect;
-        } else {
-            showToast(result.message || 'An error occurred', 'error');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+    try {
+        // Step 1: Create order and get payment intent
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Order creation failed');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showToast('An error occurred processing your order', 'error');
-        submitBtn.innerHTML = originalText;
+        
+        // Step 2: Handle payment based on method
+        if (data.payment_method === 'card' && result.requiresPayment) {
+            // Confirm card payment with Stripe
+            const {error, paymentIntent} = await stripe.confirmCardPayment(
+                result.clientSecret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: data.shipping_name,
+                            email: data.shipping_email,
+                            phone: data.shipping_phone,
+                            address: {
+                                line1: data.shipping_address,
+                                city: data.shipping_city,
+                                state: data.shipping_state,
+                                postal_code: data.shipping_zip,
+                                country: data.shipping_country
+                            }
+                        }
+                    }
+                }
+            );
+            
+            if (error) {
+                throw new Error(error.message);
+            }
+            
+            if (paymentIntent.status === 'succeeded') {
+                // Step 3: Confirm payment on backend
+                const confirmResponse = await fetch('/api/payment/confirm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: paymentIntent.id,
+                        order_id: result.order_id
+                    })
+                });
+                
+                const confirmResult = await confirmResponse.json();
+                
+                if (confirmResult.success) {
+                    showToast('Payment successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = confirmResult.redirect;
+                    }, 1000);
+                } else {
+                    throw new Error(confirmResult.message || 'Payment confirmation failed');
+                }
+            } else {
+                throw new Error('Payment was not successful');
+            }
+        } else {
+            // For PayPal or other methods
+            showToast('Order placed successfully!', 'success');
+            window.location.href = result.redirect;
+        }
+    } catch (error) {
+        console.error('Checkout error:', error);
+        showToast(error.message || 'An error occurred processing your order', 'error');
+        
+        // Reset button
+        buttonText.style.display = 'inline';
+        buttonSpinner.style.display = 'none';
         submitBtn.disabled = false;
-    });
+    }
 });
 
 // Phone number formatting

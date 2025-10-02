@@ -4,6 +4,7 @@ from .app import db
 from .models import User, Book
 from werkzeug.security import generate_password_hash, check_password_hash
 from .api_integration import search_books
+import json
 
 main = Blueprint('main', __name__)
 
@@ -633,13 +634,56 @@ def process_checkout():
             )
             db.session.add(order_item)
         
-        # Clear cart after successful order
-        CartItem.query.filter_by(cart_id=cart.id).delete()
-        
         db.session.commit()
         
-        # Return success response
-        if request.is_json:
+        # For Stripe payments, create payment intent
+        if data.get('payment_method') == 'card':
+            import stripe
+            from flask import current_app
+            
+            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            
+            try:
+                # Create Stripe PaymentIntent
+                intent = stripe.PaymentIntent.create(
+                    amount=int(total * 100),  # Convert to cents
+                    currency='usd',
+                    metadata={
+                        'order_id': order.id,
+                        'order_number': order.order_number,
+                        'user_id': session['user_id']
+                    },
+                    description=f"Order {order.order_number}",
+                    receipt_email=data.get('shipping_email')
+                )
+                
+                # Store payment intent ID
+                order.transaction_id = intent.id
+                db.session.commit()
+                
+                # Return client secret for frontend
+                return jsonify({
+                    'success': True,
+                    'requiresPayment': True,
+                    'clientSecret': intent.client_secret,
+                    'order_id': order.id,
+                    'order_number': order.order_number
+                })
+            
+            except stripe.error.StripeError as e:
+                # Payment failed, mark order as failed
+                order.payment_status = 'failed'
+                db.session.commit()
+                return jsonify({
+                    'success': False, 
+                    'message': f'Payment processing failed: {str(e)}'
+                }), 400
+        
+        else:
+            # For PayPal or other methods, clear cart and redirect
+            CartItem.query.filter_by(cart_id=cart.id).delete()
+            db.session.commit()
+            
             return jsonify({
                 'success': True,
                 'message': 'Order placed successfully',
@@ -647,9 +691,6 @@ def process_checkout():
                 'order_number': order.order_number,
                 'redirect': url_for('main.order_confirmation', order_id=order.id)
             })
-        else:
-            flash('Order placed successfully!', 'success')
-            return redirect(url_for('main.order_confirmation', order_id=order.id))
     
     except Exception as e:
         db.session.rollback()
@@ -689,3 +730,191 @@ def order_history():
     orders = Order.query.filter_by(user_id=session['user_id']).order_by(Order.created_at.desc()).all()
     
     return render_template('order_history.html', orders=orders)
+
+
+# ===========================
+# STRIPE PAYMENT ROUTES
+# ===========================
+
+@main.route('/api/stripe/config', methods=['GET'])
+def get_stripe_config():
+    """Return Stripe publishable key"""
+    from flask import current_app
+    return jsonify({
+        'publishableKey': current_app.config['STRIPE_PUBLISHABLE_KEY']
+    })
+
+
+@main.route('/api/payment/confirm', methods=['POST'])
+def confirm_payment():
+    """Confirm payment after Stripe processing"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        payment_intent_id = data.get('payment_intent_id')
+        order_id = data.get('order_id')
+        
+        if not payment_intent_id or not order_id:
+            return jsonify({'success': False, 'message': 'Missing required data'}), 400
+        
+        # Verify the payment intent with Stripe
+        import stripe
+        from flask import current_app
+        
+        stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+        
+        try:
+            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            
+            # Get order
+            from .models import Order, Cart, CartItem
+            order = Order.query.filter_by(id=order_id, user_id=session['user_id']).first()
+            
+            if not order:
+                return jsonify({'success': False, 'message': 'Order not found'}), 404
+            
+            # Update order based on payment status
+            if intent.status == 'succeeded':
+                order.payment_status = 'completed'
+                order.status = 'processing'
+                order.transaction_id = payment_intent_id
+                
+                # Clear cart
+                cart = Cart.query.filter_by(user_id=session['user_id']).first()
+                if cart:
+                    CartItem.query.filter_by(cart_id=cart.id).delete()
+                
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Payment successful',
+                    'redirect': url_for('main.order_confirmation', order_id=order.id)
+                })
+            
+            elif intent.status == 'processing':
+                order.payment_status = 'processing'
+                db.session.commit()
+                return jsonify({
+                    'success': True,
+                    'message': 'Payment is processing',
+                    'redirect': url_for('main.order_confirmation', order_id=order.id)
+                })
+            
+            else:
+                order.payment_status = 'failed'
+                order.status = 'cancelled'
+                db.session.commit()
+                return jsonify({
+                    'success': False,
+                    'message': 'Payment failed. Please try again.'
+                }), 400
+        
+        except stripe.error.StripeError as e:
+            return jsonify({
+                'success': False,
+                'message': f'Payment verification failed: {str(e)}'
+            }), 400
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Payment confirmation error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred confirming payment'
+        }), 500
+
+
+@main.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    import stripe
+    from flask import current_app
+    
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    webhook_secret = current_app.config.get('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        else:
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+    
+    except ValueError as e:
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        return jsonify({'error': 'Invalid signature'}), 400
+    
+    # Handle the event
+    if event.type == 'payment_intent.succeeded':
+        payment_intent = event.data.object
+        handle_payment_success(payment_intent)
+    
+    elif event.type == 'payment_intent.payment_failed':
+        payment_intent = event.data.object
+        handle_payment_failure(payment_intent)
+    
+    return jsonify({'success': True})
+
+
+def handle_payment_success(payment_intent):
+    """Handle successful payment"""
+    try:
+        from .models import Order, Cart, CartItem
+        
+        order_id = payment_intent.metadata.get('order_id')
+        if not order_id:
+            return
+        
+        order = Order.query.get(order_id)
+        if order:
+            order.payment_status = 'completed'
+            order.status = 'processing'
+            order.transaction_id = payment_intent.id
+            
+            # Clear user's cart
+            cart = Cart.query.filter_by(user_id=order.user_id).first()
+            if cart:
+                CartItem.query.filter_by(cart_id=cart.id).delete()
+            
+            db.session.commit()
+            
+            # TODO: Send confirmation email
+            print(f"Payment succeeded for order {order.order_number}")
+    
+    except Exception as e:
+        print(f"Error handling payment success: {str(e)}")
+        db.session.rollback()
+
+
+def handle_payment_failure(payment_intent):
+    """Handle failed payment"""
+    try:
+        from .models import Order
+        
+        order_id = payment_intent.metadata.get('order_id')
+        if not order_id:
+            return
+        
+        order = Order.query.get(order_id)
+        if order:
+            order.payment_status = 'failed'
+            order.status = 'cancelled'
+            db.session.commit()
+            
+            # TODO: Send failure notification email
+            print(f"Payment failed for order {order.order_number}")
+    
+    except Exception as e:
+        print(f"Error handling payment failure: {str(e)}")
+        db.session.rollback()
+

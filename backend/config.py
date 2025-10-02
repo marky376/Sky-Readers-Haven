@@ -23,6 +23,11 @@ class Config:
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     
+    # Stripe configuration
+    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51QGCRbP2Y6VT8XqNuE9K9kZ8XqNuE9K9kZ8')  # Use test key for development
+    STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', 'pk_test_51QGCRbP2Y6VT8XqNuE9K9kZ8XqNuE9K9kZ8')
+    STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+    
     # Logging configuration
     LOG_FILE = os.getenv('LOG_FILE', '/var/log/sky_readers_haven.log')
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
