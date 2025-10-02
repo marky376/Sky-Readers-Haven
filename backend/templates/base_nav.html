@@ -46,6 +46,10 @@
                 <span>Cart</span>
                 <span class="cart-badge" id="cart-count">0</span>
             </a>
+            <a href="{{ url_for('main.profile') }}" class="nav-link">
+                <i class='bx bx-user'></i>
+                <span>My Profile</span>
+            </a>
         {% endif %}
         {% if not session.get('username') %}
             <a class="cta cta-signup" href="{{ url_for('main.signup') }}">
