@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Sky Readers Haven{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h1>Checkout</h1>
+    
+    <div class="checkout-grid">
+        <!-- Checkout Form -->
+        <div class="checkout-form-section">
+            <form id="checkout-form" method="POST" action="{{ url_for('main.process_checkout') }}">
+                <h2>Shipping Information</h2>
+                
+                <div class="form-group">
+                    <label for="shipping_name">Full Name *</label>
+                    <input type="text" id="shipping_name" name="shipping_name" 
+                           value="{{ user.username if user else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="shipping_email">Email *</label>
+                    <input type="email" id="shipping_email" name="shipping_email" 
+                           value="{{ user.email if user else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="shipping_phone">Phone *</label>
+                    <input type="tel" id="shipping_phone" name="shipping_phone" 
+                           placeholder="(123) 456-7890" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="shipping_address">Street Address *</label>
+                    <input type="text" id="shipping_address" name="shipping_address" 
+                           placeholder="123 Main St" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shipping_city">City *</label>
+                        <input type="text" id="shipping_city" name="shipping_city" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shipping_state">State *</label>
+                        <input type="text" id="shipping_state" name="shipping_state" 
+                               placeholder="CA" maxlength="2" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shipping_zip">ZIP Code *</label>
+                        <input type="text" id="shipping_zip" name="shipping_zip" 
+                               placeholder="12345" maxlength="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shipping_country">Country *</label>
+                        <select id="shipping_country" name="shipping_country" required>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="AU">Australia</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h2>Payment Method</h2>
+                
+                <div class="payment-methods">
+                    <div class="payment-option">
+                        <input type="radio" id="payment_card" name="payment_method" 
+                               value="card" checked>
+                        <label for="payment_card">
+                            <i class="fas fa-credit-card"></i> Credit/Debit Card
+                        </label>
+                    </div>
+                    
+                    <div class="payment-option">
+                        <input type="radio" id="payment_paypal" name="payment_method" 
+                               value="paypal">
+                        <label for="payment_paypal">
+                            <i class="fab fa-paypal"></i> PayPal
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{{ url_for('main.view_cart') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Cart
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h2>Order Summary</h2>
+            
+            <div class="cart-items">
+                {% for item in cart.items %}
+                <div class="cart-item">
+                    {% if item.book.image_url %}
+                    <img src="{{ item.book.image_url }}" alt="{{ item.book.title }}" class="book-thumbnail">
+                    {% else %}
+                    <div class="book-placeholder">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="item-details">
+                        <h3>{{ item.book.title }}</h3>
+                        <p class="author">by {{ item.book.author.name }}</p>
+                        <p class="quantity">Qty: {{ item.quantity }}</p>
+                    </div>
+                    
+                    <div class="item-price">
+                        ${{ "%.2f"|format(item.get_subtotal()) }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="order-totals">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">${{ "%.2f"|format(cart.get_total()) }}</span>
+                </div>
+                
+                <div class="total-row">
+                    <span>Tax (8%):</span>
+                    <span id="tax">${{ "%.2f"|format(cart.get_total() * 0.08) }}</span>
+                </div>
+                
+                <div class="total-row">
+                    <span>Shipping:</span>
+                    <span id="shipping">
+                        {% if cart.get_total() >= 50 %}
+                        <span class="free-shipping">FREE</span>
+                        {% else %}
+                        $5.99
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="total-row grand-total">
+                    <span>Total:</span>
+                    <span id="grand-total">
+                        ${{ "%.2f"|format(cart.get_total() + (cart.get_total() * 0.08) + (5.99 if cart.get_total() < 50 else 0)) }}
+                    </span>
+                </div>
+            </div>
+            
+            {% if cart.get_total() < 50 %}
+            <div class="shipping-notice">
+                <i class="fas fa-truck"></i>
+                Add ${{ "%.2f"|format(50 - cart.get_total()) }} more for free shipping!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.checkout-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.checkout-container h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+}
+
+.checkout-form-section h2,
+.order-summary h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.payment-option:hover {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+}
+
+.payment-option input[type="radio"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.payment-option label {
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.payment-option i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.form-actions .btn {
+    padding: 12px 30px;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-color);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.order-summary {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.cart-items {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.cart-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.book-thumbnail {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.book-placeholder {
+    width: 60px;
+    height: 90px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.book-placeholder i {
+    font-size: 2rem;
+    color: #adb5bd;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h3 {
+    font-size: 0.95rem;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.item-details .author {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.item-details .quantity {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.item-price {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.order-totals {
+    border-top: 2px solid #ddd;
+    padding-top: 20px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.total-row.grand-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    border-top: 2px solid #ddd;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.free-shipping {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.shipping-notice {
+    background-color: #fff3cd;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.shipping-notice i {
+    color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-summary {
+        position: static;
+        order: -1;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitBtn.disabled = true;
+    
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            window.location.href = result.redirect;
+        } else {
+            showToast(result.message || 'An error occurred', 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred processing your order', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+// Phone number formatting
+document.getElementById('shipping_phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 10) value = value.substr(0, 10);
+    
+    if (value.length >= 6) {
+        e.target.value = `(${value.substr(0, 3)}) ${value.substr(3, 3)}-${value.substr(6)}`;
+    } else if (value.length >= 3) {
+        e.target.value = `(${value.substr(0, 3)}) ${value.substr(3)}`;
+    } else {
+        e.target.value = value;
+    }
+});
+
+// ZIP code formatting
+document.getElementById('shipping_zip').addEventListener('input', function(e) {
+    e.target.value = e.target.value.replace(/[^\d-]/g, '');
+});
+
+// State code uppercase
+document.getElementById('shipping_state').addEventListener('input', function(e) {
+    e.target.value = e.target.value.toUpperCase();
+});
+</script>
+{% endblock %}

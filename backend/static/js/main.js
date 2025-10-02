@@ -336,67 +336,170 @@ style.textContent = '\n    @keyframes slideOut {\n        to {\n            tran
 document.head.appendChild(style);
 
 console.log('Sky Readers Haven JavaScript loaded successfully! 📚');
-    const signupForm = document.getElementById('signup-form');
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+// ============================================
+// SHOPPING CART FUNCTIONALITY
+// ============================================
+
+// Update cart badge count
+function updateCartBadge() {
+    fetch('/api/cart')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('cart-count');
+            if (badge) {
+                const count = data.item_count || 0;
+                badge.textContent = count;
+                if (count > 0) {
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating cart badge:', error);
+        });
+}
+
+// Add book to cart
+async function addToCart(bookId, bookTitle = 'Book') {
+    // Check if user is logged in by checking if cart badge exists
+    const cartBadge = document.getElementById('cart-count');
+    if (!cartBadge) {
+        showNotification('Please log in to add items to cart', 'error');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+        return;
     }
 
-    if (signupForm) {
-        signupForm.addEventListener('submit', handleSignup);
-    }
-
-    function handleLogin(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
-
-        fetch('/api/login', {
+    try {
+        const response = await fetch('/api/cart/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.access_token) {
-                localStorage.setItem('token', data.access_token);
-                window.location.href = '/';
-            } else {
-                alert(data.message || 'Login failed');
-            }
-        })
-        .catch(error => {
-            console.error('Login error:', error);
-            alert('Login failed');
+            body: JSON.stringify({
+                book_id: bookId,
+                quantity: 1
+            })
         });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showNotification(data.message || `${bookTitle} added to cart!`, 'success');
+            updateCartBadge();
+        } else {
+            showNotification(data.error || 'Failed to add to cart', 'error');
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+// Add Google Books book to cart (saves to DB first)
+async function addGoogleBookToCart(bookData, button) {
+    // Check if user is logged in
+    const cartBadge = document.getElementById('cart-count');
+    if (!cartBadge) {
+        showNotification('Please log in to add items to cart', 'error');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+        return;
     }
 
-    function handleSignup(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
+    // Show loading state
+    if (button) {
+        button.classList.add('loading');
+        button.disabled = true;
+    }
 
-        fetch('/api/register', {
+    try {
+        // First, save the Google Books book to our database
+        const saveResponse = await fetch('/api/book/save-from-google', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message === 'User registered successfully') {
-                alert('Registration successful! Please log in.');
-                window.location.href = '/login';
-            } else {
-                alert(data.message || 'Registration failed');
-            }
-        })
-        .catch(error => {
-            console.error('Signup error:', error);
-            alert('Registration failed');
+            body: JSON.stringify(bookData)
         });
+
+        const saveData = await saveResponse.json();
+
+        if (saveResponse.ok && saveData.book_id) {
+            // Now add to cart using the database book_id
+            const cartResponse = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    book_id: saveData.book_id,
+                    quantity: 1
+                })
+            });
+
+            const cartData = await cartResponse.json();
+
+            if (cartResponse.ok) {
+                showNotification(cartData.message || `${bookData.title} added to cart!`, 'success');
+                updateCartBadge();
+            } else {
+                showNotification(cartData.error || 'Failed to add to cart', 'error');
+            }
+        } else {
+            showNotification(saveData.error || 'Failed to save book', 'error');
+        }
+    } catch (error) {
+        console.error('Error adding Google book to cart:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    } finally {
+        // Remove loading state
+        if (button) {
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
     }
-});
+}
+
+
+// Show notification toast
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existing = document.querySelector('.toast-notification');
+    if (existing) {
+        existing.remove();
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `toast-notification toast-${type}`;
+    notification.innerHTML = `
+        <i class='bx ${type === 'success' ? 'bx-check-circle' : type === 'error' ? 'bx-error-circle' : 'bx-info-circle'}'></i>
+        <span>${message}</span>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Trigger animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Initialize cart badge on page load
+if (document.getElementById('cart-count')) {
+    updateCartBadge();
+}

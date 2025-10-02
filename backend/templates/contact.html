@@ -30,7 +30,7 @@
                 <div class="contact-form-wrapper">
                     <h2>Send Us a Message</h2>
                     <form action="#" method="post" class="contact-form">
-                        {% with messages = get_flashes_messages(with_categories=true) %}
+                        {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}
                                 <ul class="flashes">
                                     {% for category, message in messages %}

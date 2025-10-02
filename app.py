@@ -4,6 +4,11 @@ Main application entry point for Sky Readers Haven
 """
 
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from backend.app import create_app, db
 
 # Determine configuration

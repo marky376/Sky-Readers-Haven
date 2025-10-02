@@ -12,6 +12,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     reviews = db.relationship('Review', backref='user', lazy=True)
+    cart = db.relationship('Cart', backref='user', uselist=False, lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -47,6 +48,7 @@ class Book(db.Model):
     description = db.Column(db.Text, nullable=True)
     published_date = db.Column(db.Date, nullable=True)
     isbn = db.Column(db.String(13), unique=True, nullable=True)
+    price = db.Column(db.Float, default=9.99, nullable=False)  # Default book price
     author_id = db.Column(db.Integer, db.ForeignKey('authors.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     reviews = db.relationship('Review', backref='book', lazy=True)
@@ -65,3 +67,111 @@ class Review(db.Model):
 
     def __repr__(self):
         return f'<Review {self.content[:20]}>'
+
+class ContactMessage(db.Model):
+    __tablename__ = 'contact_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='new', nullable=False)  # new, read, replied
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f'<ContactMessage from {self.email}>'
+
+class Cart(db.Model):
+    __tablename__ = 'carts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    items = db.relationship('CartItem', backref='cart', lazy=True, cascade='all, delete-orphan')
+
+    def get_total_price(self):
+        """Calculate total price of all items in cart"""
+        return sum(item.get_subtotal() for item in self.items)
+
+    def get_total_items(self):
+        """Get total number of items (sum of quantities)"""
+        return sum(item.quantity for item in self.items)
+
+    def __repr__(self):
+        return f'<Cart for User {self.user_id}>'
+
+class CartItem(db.Model):
+    __tablename__ = 'cart_items'
+    id = db.Column(db.Integer, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+    price = db.Column(db.Float, nullable=False)  # Price at time of adding to cart
+    added_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    book = db.relationship('Book', backref='cart_items', lazy=True)
+
+    def get_subtotal(self):
+        """Calculate subtotal for this cart item"""
+        return self.price * self.quantity
+
+    def __repr__(self):
+        return f'<CartItem Book {self.book_id} x {self.quantity}>'
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    order_number = db.Column(db.String(50), unique=True, nullable=False)
+    
+    # Order status: pending, processing, shipped, delivered, cancelled
+    status = db.Column(db.String(20), default='pending', nullable=False)
+    
+    # Pricing
+    subtotal = db.Column(db.Float, nullable=False)
+    tax = db.Column(db.Float, nullable=False)
+    shipping_cost = db.Column(db.Float, default=0.0, nullable=False)
+    total = db.Column(db.Float, nullable=False)
+    
+    # Shipping information
+    shipping_name = db.Column(db.String(120), nullable=False)
+    shipping_email = db.Column(db.String(120), nullable=False)
+    shipping_phone = db.Column(db.String(20), nullable=True)
+    shipping_address = db.Column(db.String(255), nullable=False)
+    shipping_city = db.Column(db.String(100), nullable=False)
+    shipping_state = db.Column(db.String(100), nullable=True)
+    shipping_zip = db.Column(db.String(20), nullable=False)
+    shipping_country = db.Column(db.String(100), nullable=False)
+    
+    # Payment information
+    payment_method = db.Column(db.String(50), nullable=False)  # card, paypal, etc.
+    payment_status = db.Column(db.String(20), default='pending', nullable=False)  # pending, paid, failed
+    transaction_id = db.Column(db.String(100), nullable=True)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
+    user = db.relationship('User', backref='orders', lazy=True)
+    
+    def __repr__(self):
+        return f'<Order {self.order_number}>'
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)  # Price at time of order
+    
+    # Relationships
+    book = db.relationship('Book', backref='order_items', lazy=True)
+    
+    def get_subtotal(self):
+        """Calculate subtotal for this order item"""
+        return self.price * self.quantity
+    
+    def __repr__(self):
+        return f'<OrderItem Order {self.order_id} Book {self.book_id}>'

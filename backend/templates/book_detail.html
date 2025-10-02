@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{{ book.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
     </head>
 <body>
     {% include 'base_nav.html' %}
@@ -16,10 +17,24 @@
                     <h1>{{ book.title }}</h1>
                     <p class="authors">{{ book.authors|join(', ') if book.authors else 'Unknown' }}</p>
                     <p class="published">Published: {{ book.publishedDate or 'N/A' }}</p>
+                    {% if session.get('username') %}
+                    <button class="btn-add-cart" style="margin-top:1rem" onclick="addGoogleBookToCart({
+                        title: '{{ book.title | replace("'", "\\'") }}',
+                        authors: {{ book.authors | tojson if book.authors else '[]' }},
+                        description: '{{ (book.description | default("") | replace("'", "\\'") | replace("\n", " "))[:500] }}',
+                        publishedDate: '{{ book.publishedDate or "" }}',
+                        isbn: '',
+                        price: 9.99
+                    }, this)">
+                        <i class='bx bx-cart-add'></i>
+                        Add to Cart
+                    </button>
+                    {% endif %}
                     <div style="margin-top:12px">{{ book.description|default('No description available') }}</div>
                 </div>
             </div>
         </div>
     </main>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

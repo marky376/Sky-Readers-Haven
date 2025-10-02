@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Books - Sky Readers Haven</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+	<link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
 </head>
 <body>
 	{% include 'base_nav.html' %}
@@ -28,10 +29,23 @@
 						<div class="meta">
 							<h3>{{ book.title }}</h3>
 							<p class="authors">{{ book.authors | join(', ') if book.authors else 'Unknown' }}</p>
-							<p class="desc">{{ (book.description | default('No description available'))[:200] }}{% if book.description and (book.description | length) > 200 %}...{% endif %}</p>
+							<p class="desc">{% if book.description %}{{ book.description[:200] }}{% if book.description | length > 200 %}...{% endif %}{% else %}No description available{% endif %}</p>
 							<div class="actions">
 								<span class="published">{{ book.publishedDate or 'N/A' }}</span>
 								<a class="btn" href="{{ url_for('main.book_detail', volume_id=book.id) }}">Details</a>
+								{% if session.get('username') %}
+								<button class="btn-add-cart" onclick="addGoogleBookToCart({
+									title: '{{ book.title | replace("'", "\\'") }}',
+									authors: {{ book.authors | tojson if book.authors else '[]' }},
+									description: '{{ (book.description | default("") | replace("'", "\\'") | replace("\n", " "))[:500] }}',
+									publishedDate: '{{ book.publishedDate or "" }}',
+									isbn: '',
+									price: 9.99
+								}, this)">
+									<i class='bx bx-cart-add'></i>
+									Add to Cart
+								</button>
+								{% endif %}
 							</div>
 						</div>
 					</article>

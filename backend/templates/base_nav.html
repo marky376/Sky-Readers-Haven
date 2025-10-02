@@ -16,6 +16,12 @@
             <i class='bx bx-home-alt'></i>
             <span>Home</span>
         </a>
+        {% if session.get('username') %}
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link">
+            <i class='bx bx-grid-alt'></i>
+            <span>Dashboard</span>
+        </a>
+        {% endif %}
         <a href="{{ url_for('main.books') }}" class="nav-link">
             <i class='bx bx-book'></i>
             <span>Books</span>
@@ -28,6 +34,13 @@
             <i class='bx bx-envelope'></i>
             <span>Contact</span>
         </a>
+        {% if session.get('username') %}
+            <a href="{{ url_for('main.view_cart') }}" class="nav-link cart-link">
+                <i class='bx bx-cart'></i>
+                <span>Cart</span>
+                <span class="cart-badge" id="cart-count">0</span>
+            </a>
+        {% endif %}
         {% if not session.get('username') %}
             <a class="cta cta-signup" href="{{ url_for('main.signup') }}">
                 <i class='bx bx-user-plus'></i>

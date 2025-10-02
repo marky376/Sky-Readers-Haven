@@ -31,6 +31,9 @@ def create_app(config_name="default"):
     migrate.init_app(app, db)
     jwt.init_app(app)
     
+    # Import models so Flask-Migrate can detect them
+    from . import models
+    
     # Register blueprints
     from .routes import main
     app.register_blueprint(main)

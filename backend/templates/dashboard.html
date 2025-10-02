@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sky Readers Haven</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+</head>
+<body>
+    {% include 'base_nav.html' %}
+
+    <main class="dashboard-page">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="dashboard-welcome">
+                <div class="welcome-content">
+                    <h1>Welcome back, <span class="gradient-text">{{ session.get('username', 'Reader') }}</span>! 👋</h1>
+                    <p>Ready to discover your next favorite book?</p>
+                </div>
+                <div class="welcome-actions">
+                    <a href="{{ url_for('main.books') }}" class="btn btn-primary">
+                        <i class='bx bx-book-open'></i> Browse Books
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <i class='bx bx-heart'></i> My Wishlist
+                    </a>
+                </div>
+            </section>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <i class='bx {% if category == "success" %}bx-check-circle{% elif category == "error" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Dashboard Stats -->
+            <section class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class='bx bx-cart'></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ cart_count|default(0) }}</h3>
+                        <p>Items in Cart</p>
+                    </div>
+                    <a href="#" class="stat-link">View Cart →</a>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class='bx bx-heart'></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ wishlist_count|default(0) }}</h3>
+                        <p>Saved Books</p>
+                    </div>
+                    <a href="#" class="stat-link">View Wishlist →</a>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class='bx bx-package'></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ orders_count|default(0) }}</h3>
+                        <p>Total Orders</p>
+                    </div>
+                    <a href="#" class="stat-link">View Orders →</a>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <i class='bx bx-book-reader'></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ books_read|default(0) }}</h3>
+                        <p>Books Read</p>
+                    </div>
+                    <a href="#" class="stat-link">Reading List →</a>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="dashboard-actions">
+                <h2 class="section-title">Quick Actions</h2>
+                <div class="action-grid">
+                    <a href="{{ url_for('main.books') }}" class="action-card">
+                        <div class="action-icon">
+                            <i class='bx bx-search'></i>
+                        </div>
+                        <h3>Search Books</h3>
+                        <p>Find your next read from millions of titles</p>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <h3>My Profile</h3>
+                        <p>View and edit your account details</p>
+                    </a>
+
+                    <a href="#" class="action-card">
+                        <div class="action-icon">
+                            <i class='bx bx-history'></i>
+                        </div>
+                        <h3>Order History</h3>
+                        <p>Track your past and current orders</p>
+                    </a>
+
+                    <a href="{{ url_for('main.contact') }}" class="action-card">
+                        <div class="action-icon">
+                            <i class='bx bx-support'></i>
+                        </div>
+                        <h3>Get Help</h3>
+                        <p>Contact our support team</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Activity / Recommendations (placeholder) -->
+            <section class="dashboard-recommendations">
+                <h2 class="section-title">Recommended For You</h2>
+                <div class="book-slider">
+                    <div class="book-card-placeholder">
+                        <div class="book-image-placeholder"></div>
+                        <div class="book-info-placeholder">
+                            <div class="book-title-placeholder"></div>
+                            <div class="book-author-placeholder"></div>
+                        </div>
+                    </div>
+                    <div class="book-card-placeholder">
+                        <div class="book-image-placeholder"></div>
+                        <div class="book-info-placeholder">
+                            <div class="book-title-placeholder"></div>
+                            <div class="book-author-placeholder"></div>
+                        </div>
+                    </div>
+                    <div class="book-card-placeholder">
+                        <div class="book-image-placeholder"></div>
+                        <div class="book-info-placeholder">
+                            <div class="book-title-placeholder"></div>
+                            <div class="book-author-placeholder"></div>
+                        </div>
+                    </div>
+                    <div class="book-card-placeholder">
+                        <div class="book-image-placeholder"></div>
+                        <div class="book-info-placeholder">
+                            <div class="book-title-placeholder"></div>
+                            <div class="book-author-placeholder"></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-muted" style="margin-top: 2rem;">
+                    <i class='bx bx-info-circle'></i> Start browsing to get personalized recommendations
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

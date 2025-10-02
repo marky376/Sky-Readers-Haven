@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Order History - Sky Readers Haven{% endblock %}
+
+{% block content %}
+<div class="order-history-container">
+    <h1>Order History</h1>
+    
+    {% if orders %}
+    <div class="orders-list">
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-number">
+                    <strong>Order #{{ order.order_number }}</strong>
+                    <span class="order-date">{{ order.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="order-status">
+                    <span class="status-badge status-{{ order.status }}">
+                        {{ order.status|capitalize }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="order-body">
+                <div class="order-items">
+                    {% for item in order.items[:3] %}
+                    <div class="order-item">
+                        {% if item.book.image_url %}
+                        <img src="{{ item.book.image_url }}" alt="{{ item.book.title }}">
+                        {% else %}
+                        <div class="book-placeholder">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        {% endif %}
+                        <div class="item-info">
+                            <strong>{{ item.book.title }}</strong>
+                            <small>Qty: {{ item.quantity }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if order.items|length > 3 %}
+                    <div class="more-items">
+                        +{{ order.items|length - 3 }} more item(s)
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-item">
+                        <span>Total:</span>
+                        <strong>${{ "%.2f"|format(order.total) }}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Payment:</span>
+                        <span>
+                            {% if order.payment_method == 'card' %}
+                            <i class="fas fa-credit-card"></i> Card
+                            {% elif order.payment_method == 'paypal' %}
+                            <i class="fab fa-paypal"></i> PayPal
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-footer">
+                <a href="{{ url_for('main.order_confirmation', order_id=order.id) }}" class="btn btn-primary">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-shopping-bag"></i>
+        <h2>No Orders Yet</h2>
+        <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+        <a href="{{ url_for('main.books') }}" class="btn btn-primary">
+            <i class="fas fa-book"></i> Browse Books
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.order-history-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.order-history-container h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.order-number {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-number strong {
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.order-date {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.status-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-shipped {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-delivered {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-item img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.book-placeholder {
+    width: 40px;
+    height: 60px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.book-placeholder i {
+    font-size: 1.2rem;
+    color: #adb5bd;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item-info strong {
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.item-info small {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.more-items {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-left: 52px;
+}
+
+.order-summary {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-item strong {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.order-footer {
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 10px 25px;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-state h2 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+.empty-state .btn {
+    font-size: 1rem;
+    padding: 12px 30px;
+}
+
+@media (max-width: 768px) {
+    .order-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .order-summary {
+        padding: 10px;
+    }
+    
+    .order-footer {
+        justify-content: center;
+    }
+    
+    .order-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

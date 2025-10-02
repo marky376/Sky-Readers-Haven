@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Sky Readers Haven</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'base_nav.html' %}
+
+    <!-- Cart Hero Section -->
+    <section class="cart-hero">
+        <div class="container">
+            <div class="cart-hero-content">
+                <span class="hero-badge">🛒 Your Selection</span>
+                <h1>Shopping <span class="gradient-text">Cart</span></h1>
+                <p class="hero-subtitle">Review your book selections before checkout</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Content -->
+    <section class="cart-section">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <i class='bx {% if category == "success" %}bx-check-circle{% else %}bx-error-circle{% endif %}'></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% if cart_items %}
+                <div class="cart-layout">
+                    <!-- Cart Items -->
+                    <div class="cart-items-container">
+                        <h2>Cart Items ({{ item_count }})</h2>
+                        
+                        {% for item in cart_items %}
+                        <div class="cart-item" data-item-id="{{ item.id }}">
+                            <div class="cart-item-image">
+                                <img src="{{ url_for('static', filename='images/book.png') }}" alt="{{ item.book.title }}">
+                            </div>
+                            
+                            <div class="cart-item-details">
+                                <h3 class="cart-item-title">{{ item.book.title }}</h3>
+                                <p class="cart-item-author">
+                                    <i class='bx bx-user'></i>
+                                    by {{ item.book.author.name if item.book.author else 'Unknown' }}
+                                </p>
+                                <p class="cart-item-price">${{ "%.2f"|format(item.price) }}</p>
+                            </div>
+                            
+                            <div class="cart-item-actions">
+                                <div class="quantity-selector">
+                                    <button class="qty-btn qty-decrease" onclick="updateQuantity({{ item.id }}, {{ item.quantity - 1 }})">
+                                        <i class='bx bx-minus'></i>
+                                    </button>
+                                    <input type="number" class="qty-input" value="{{ item.quantity }}" min="1" max="99" readonly>
+                                    <button class="qty-btn qty-increase" onclick="updateQuantity({{ item.id }}, {{ item.quantity + 1 }})">
+                                        <i class='bx bx-plus'></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="cart-item-subtotal">
+                                    <span class="subtotal-label">Subtotal:</span>
+                                    <span class="subtotal-amount">${{ "%.2f"|format(item.get_subtotal()) }}</span>
+                                </div>
+                                
+                                <button class="remove-btn" onclick="removeItem({{ item.id }})">
+                                    <i class='bx bx-trash'></i>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Cart Summary -->
+                    <div class="cart-summary">
+                        <h2>Order Summary</h2>
+                        
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span>${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span>Shipping:</span>
+                            <span class="text-success">FREE</span>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span>Tax (estimated):</span>
+                            <span>${{ "%.2f"|format(total * 0.1) }}</span>
+                        </div>
+                        
+                        <div class="summary-divider"></div>
+                        
+                        <div class="summary-row summary-total">
+                            <span>Total:</span>
+                            <span>${{ "%.2f"|format(total + (total * 0.1)) }}</span>
+                        </div>
+                        
+                        <div class="cart-actions">
+                            <button class="btn btn-primary btn-checkout" onclick="proceedToCheckout()">
+                                <i class='bx bx-credit-card'></i>
+                                Proceed to Checkout
+                            </button>
+                            
+                            <a href="{{ url_for('main.books') }}" class="btn btn-secondary">
+                                <i class='bx bx-left-arrow-alt'></i>
+                                Continue Shopping
+                            </a>
+                            
+                            <button class="btn btn-danger btn-clear" onclick="clearCart()">
+                                <i class='bx bx-trash'></i>
+                                Clear Cart
+                            </button>
+                        </div>
+                        
+                        <!-- Promo Code Section -->
+                        <div class="promo-section">
+                            <h3>Have a Promo Code?</h3>
+                            <div class="promo-input-group">
+                                <input type="text" placeholder="Enter code" class="promo-input">
+                                <button class="btn btn-sm btn-primary">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Empty Cart State -->
+                <div class="empty-cart">
+                    <div class="empty-cart-icon">
+                        <i class='bx bx-cart'></i>
+                    </div>
+                    <h2>Your Cart is Empty</h2>
+                    <p>Looks like you haven't added any books to your cart yet.</p>
+                    <a href="{{ url_for('main.books') }}" class="btn btn-primary">
+                        <i class='bx bx-book'></i>
+                        Browse Books
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Sky Readers Haven. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Update cart item quantity
+        async function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) {
+                if (!confirm('Remove this item from cart?')) {
+                    return;
+                }
+                removeItem(itemId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cart/update/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ quantity: newQuantity })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Reload page to show updated cart
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to update cart');
+                }
+            } catch (error) {
+                console.error('Error updating cart:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+        
+        // Remove item from cart
+        async function removeItem(itemId) {
+            if (!confirm('Are you sure you want to remove this item?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cart/remove/${itemId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Reload page to show updated cart
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to remove item');
+                }
+            } catch (error) {
+                console.error('Error removing item:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+        
+        // Clear entire cart
+        async function clearCart() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cart/clear', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Reload page to show empty cart
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to clear cart');
+                }
+            } catch (error) {
+                console.error('Error clearing cart:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+        
+        // Proceed to checkout
+        function proceedToCheckout() {
+            window.location.href = '{{ url_for("main.checkout") }}';
+        }
+    </script>
+</body>
+</html>
