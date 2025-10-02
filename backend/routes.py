@@ -4,6 +4,7 @@ from .app import db
 from .models import User, Book
 from werkzeug.security import generate_password_hash, check_password_hash
 from .api_integration import search_books
+from .email_service import send_order_confirmation_email, send_payment_receipt_email, send_shipping_notification_email
 import json
 
 main = Blueprint('main', __name__)
@@ -788,6 +789,14 @@ def confirm_payment():
                 
                 db.session.commit()
                 
+                # Send confirmation and receipt emails
+                try:
+                    user = User.query.get(session['user_id'])
+                    send_order_confirmation_email(order, user)
+                    send_payment_receipt_email(order, user)
+                except Exception as e:
+                    print(f"Error sending emails: {str(e)}")
+                
                 return jsonify({
                     'success': True,
                     'message': 'Payment successful',
@@ -888,8 +897,14 @@ def handle_payment_success(payment_intent):
             
             db.session.commit()
             
-            # TODO: Send confirmation email
-            print(f"Payment succeeded for order {order.order_number}")
+            # Send confirmation email
+            try:
+                user = User.query.get(order.user_id)
+                send_order_confirmation_email(order, user)
+                send_payment_receipt_email(order, user)
+                print(f"Payment succeeded and emails sent for order {order.order_number}")
+            except Exception as email_error:
+                print(f"Error sending emails: {str(email_error)}")
     
     except Exception as e:
         print(f"Error handling payment success: {str(e)}")
