@@ -22,6 +22,12 @@
             <span>Dashboard</span>
         </a>
         {% endif %}
+        {% if session.get('is_admin') %}
+        <a href="{{ url_for('main.admin_dashboard') }}" class="nav-link admin-link">
+            <i class='bx bx-shield'></i>
+            <span>Admin</span>
+        </a>
+        {% endif %}
         <a href="{{ url_for('main.books') }}" class="nav-link">
             <i class='bx bx-book'></i>
             <span>Books</span>

@@ -116,6 +116,7 @@ def login():
         access_token = create_access_token(identity=user.username)
         session['username'] = user.username
         session['user_id'] = user.id
+        session['is_admin'] = user.is_admin  # Add admin status to session
         if request.is_json:
             return jsonify({'access_token': access_token}), 200
         else:
@@ -932,4 +933,215 @@ def handle_payment_failure(payment_intent):
     except Exception as e:
         print(f"Error handling payment failure: {str(e)}")
         db.session.rollback()
+
+
+# ===========================
+# ADMIN ROUTES
+# ===========================
+
+def admin_required(f):
+    """Decorator to check if user is admin"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login to access admin panel', 'error')
+            return redirect(url_for('main.login'))
+        
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            flash('Access denied. Admin privileges required.', 'error')
+            return redirect(url_for('main.home'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@main.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard with order management"""
+    from .models import Order
+    from sqlalchemy import func
+    
+    # Get all orders
+    orders = Order.query.order_by(Order.created_at.desc()).all()
+    
+    # Calculate stats
+    total_orders = Order.query.count()
+    pending_orders = Order.query.filter_by(status='pending').count()
+    processing_orders = Order.query.filter_by(status='processing').count()
+    
+    # Calculate total revenue (completed payments only)
+    total_revenue = db.session.query(func.sum(Order.total)).filter(
+        Order.payment_status == 'completed'
+    ).scalar() or 0
+    
+    return render_template('admin_dashboard.html',
+                         orders=orders,
+                         total_orders=total_orders,
+                         pending_orders=pending_orders,
+                         processing_orders=processing_orders,
+                         total_revenue=total_revenue)
+
+
+@main.route('/api/admin/orders/<int:order_id>/status', methods=['PUT'])
+@admin_required
+def update_order_status(order_id):
+    """Update order status"""
+    try:
+        from .models import Order
+        
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({'success': False, 'message': 'Status is required'}), 400
+        
+        valid_statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+        if new_status not in valid_statuses:
+            return jsonify({'success': False, 'message': 'Invalid status'}), 400
+        
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+        
+        old_status = order.status
+        order.status = new_status
+        db.session.commit()
+        
+        # Send shipping notification if order is marked as shipped
+        if new_status == 'shipped' and old_status != 'shipped':
+            try:
+                user = User.query.get(order.user_id)
+                send_shipping_notification_email(order, user)
+            except Exception as e:
+                print(f"Error sending shipping email: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Order status updated to {new_status}',
+            'order': {
+                'id': order.id,
+                'status': order.status
+            }
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating order status: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred'}), 500
+
+
+@main.route('/api/admin/orders/<int:order_id>')
+@admin_required
+def get_order_details(order_id):
+    """Get detailed order information"""
+    try:
+        from .models import Order
+        
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'order': {
+                'id': order.id,
+                'order_number': order.order_number,
+                'status': order.status,
+                'payment_status': order.payment_status,
+                'payment_method': order.payment_method,
+                'shipping_name': order.shipping_name,
+                'shipping_email': order.shipping_email,
+                'shipping_phone': order.shipping_phone,
+                'shipping_address': order.shipping_address,
+                'shipping_city': order.shipping_city,
+                'shipping_state': order.shipping_state,
+                'shipping_zip': order.shipping_zip,
+                'shipping_country': order.shipping_country,
+                'subtotal': float(order.subtotal),
+                'tax': float(order.tax),
+                'shipping_cost': float(order.shipping_cost),
+                'total': float(order.total),
+                'items': [{
+                    'book_title': item.book.title,
+                    'quantity': item.quantity,
+                    'price': float(item.price),
+                    'subtotal': float(item.get_subtotal())
+                } for item in order.items]
+            }
+        })
+    
+    except Exception as e:
+        print(f"Error getting order details: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred'}), 500
+
+
+@main.route('/api/admin/orders/export')
+@admin_required
+def export_orders():
+    """Export orders to CSV"""
+    try:
+        from .models import Order
+        import csv
+        from io import StringIO
+        from flask import Response
+        
+        orders = Order.query.order_by(Order.created_at.desc()).all()
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow([
+            'Order Number', 'Customer Name', 'Email', 'Date', 
+            'Status', 'Payment Status', 'Payment Method',
+            'Items', 'Subtotal', 'Tax', 'Shipping', 'Total'
+        ])
+        
+        # Write data
+        for order in orders:
+            writer.writerow([
+                order.order_number,
+                order.shipping_name,
+                order.shipping_email,
+                order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                order.status,
+                order.payment_status,
+                order.payment_method,
+                len(order.items),
+                f"${order.subtotal:.2f}",
+                f"${order.tax:.2f}",
+                f"${order.shipping_cost:.2f}",
+                f"${order.total:.2f}"
+            ])
+        
+        # Create response
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=orders_export.csv'}
+        )
+    
+    except Exception as e:
+        print(f"Error exporting orders: {str(e)}")
+        flash('Error exporting orders', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+
+
+@main.route('/admin/orders/<int:order_id>/print')
+@admin_required
+def print_order(order_id):
+    """Print-friendly order page"""
+    from .models import Order
+    
+    order = Order.query.get(order_id)
+    if not order:
+        flash('Order not found', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    return render_template('print_order.html', order=order)
 
