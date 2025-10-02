@@ -1342,3 +1342,357 @@ def delete_account():
         print(f"Error deleting account: {str(e)}")
         return jsonify({'success': False, 'message': 'Failed to delete account'}), 500
 
+
+# ============================================================================
+# REVIEWS & RATINGS ROUTES
+# ============================================================================
+
+@main.route('/api/books/<int:book_id>/reviews')
+def get_book_reviews(book_id):
+    """Get all approved reviews for a book"""
+    from .models import Review, User
+    from sqlalchemy import func
+    
+    # Get sort parameter
+    sort_by = request.args.get('sort', 'recent')  # recent, helpful, rating_high, rating_low
+    
+    # Base query - only approved reviews
+    query = Review.query.filter_by(book_id=book_id, status='approved')
+    
+    # Apply sorting
+    if sort_by == 'helpful':
+        query = query.order_by(Review.helpful_count.desc())
+    elif sort_by == 'rating_high':
+        query = query.order_by(Review.rating.desc(), Review.created_at.desc())
+    elif sort_by == 'rating_low':
+        query = query.order_by(Review.rating.asc(), Review.created_at.desc())
+    else:  # recent (default)
+        query = query.order_by(Review.created_at.desc())
+    
+    reviews = query.all()
+    
+    # Get user's votes if logged in
+    user_votes = {}
+    if 'user_id' in session:
+        from .models import ReviewVote
+        votes = ReviewVote.query.filter_by(user_id=session['user_id']).all()
+        user_votes = {vote.review_id: vote.is_helpful for vote in votes}
+    
+    # Format reviews
+    reviews_data = []
+    for review in reviews:
+        reviews_data.append({
+            'id': review.id,
+            'title': review.title,
+            'content': review.content,
+            'rating': review.rating,
+            'username': review.user.username,
+            'verified_purchase': review.verified_purchase,
+            'helpful_count': review.helpful_count,
+            'unhelpful_count': review.unhelpful_count,
+            'created_at': review.created_at.strftime('%B %d, %Y'),
+            'user_vote': user_votes.get(review.id)  # None, True (helpful), or False (not helpful)
+        })
+    
+    # Get rating statistics
+    stats = db.session.query(
+        func.count(Review.id).label('total'),
+        func.avg(Review.rating).label('average'),
+        func.sum(db.case((Review.rating == 5, 1), else_=0)).label('five_star'),
+        func.sum(db.case((Review.rating == 4, 1), else_=0)).label('four_star'),
+        func.sum(db.case((Review.rating == 3, 1), else_=0)).label('three_star'),
+        func.sum(db.case((Review.rating == 2, 1), else_=0)).label('two_star'),
+        func.sum(db.case((Review.rating == 1, 1), else_=0)).label('one_star')
+    ).filter_by(book_id=book_id, status='approved').first()
+    
+    return jsonify({
+        'success': True,
+        'reviews': reviews_data,
+        'stats': {
+            'total': stats.total or 0,
+            'average': round(float(stats.average), 1) if stats.average else 0,
+            'distribution': {
+                '5': stats.five_star or 0,
+                '4': stats.four_star or 0,
+                '3': stats.three_star or 0,
+                '2': stats.two_star or 0,
+                '1': stats.one_star or 0
+            }
+        }
+    })
+
+
+@main.route('/api/books/<int:book_id>/reviews', methods=['POST'])
+def create_review(book_id):
+    """Create a new review for a book"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please log in to write a review'}), 401
+    
+    from .models import Review, Book, Order, OrderItem
+    
+    data = request.get_json()
+    
+    # Validate input
+    if not data.get('content') or not data.get('rating'):
+        return jsonify({'success': False, 'message': 'Please provide rating and review text'}), 400
+    
+    rating = int(data['rating'])
+    if rating < 1 or rating > 5:
+        return jsonify({'success': False, 'message': 'Rating must be between 1 and 5'}), 400
+    
+    # Check if book exists
+    book = Book.query.get(book_id)
+    if not book:
+        return jsonify({'success': False, 'message': 'Book not found'}), 404
+    
+    # Check if user already reviewed this book
+    existing_review = Review.query.filter_by(
+        user_id=session['user_id'],
+        book_id=book_id
+    ).first()
+    
+    if existing_review:
+        return jsonify({'success': False, 'message': 'You have already reviewed this book'}), 400
+    
+    # Check if user purchased this book (verified purchase)
+    verified_purchase = db.session.query(OrderItem).join(Order).filter(
+        Order.user_id == session['user_id'],
+        OrderItem.book_id == book_id,
+        Order.payment_status == 'paid'
+    ).first() is not None
+    
+    # Create review
+    review = Review(
+        title=data.get('title', '').strip() or None,
+        content=data['content'].strip(),
+        rating=rating,
+        user_id=session['user_id'],
+        book_id=book_id,
+        verified_purchase=verified_purchase,
+        status='approved'  # Auto-approve for now (can change to 'pending' for moderation)
+    )
+    
+    try:
+        db.session.add(review)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Review submitted successfully!',
+            'review_id': review.id
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating review: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to submit review'}), 500
+
+
+@main.route('/api/reviews/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    """Update an existing review"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Review
+    
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+    
+    # Check ownership
+    if review.user_id != session['user_id']:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    
+    # Update fields
+    if 'title' in data:
+        review.title = data['title'].strip() or None
+    
+    if 'content' in data:
+        content = data['content'].strip()
+        if not content:
+            return jsonify({'success': False, 'message': 'Review text cannot be empty'}), 400
+        review.content = content
+    
+    if 'rating' in data:
+        rating = int(data['rating'])
+        if rating < 1 or rating > 5:
+            return jsonify({'success': False, 'message': 'Rating must be between 1 and 5'}), 400
+        review.rating = rating
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Review updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating review: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to update review'}), 500
+
+
+@main.route('/api/reviews/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    """Delete a review"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Review
+    
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+    
+    # Check ownership or admin
+    if review.user_id != session['user_id'] and not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    
+    try:
+        db.session.delete(review)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Review deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting review: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to delete review'}), 500
+
+
+@main.route('/api/reviews/<int:review_id>/vote', methods=['POST'])
+def vote_review(review_id):
+    """Vote on a review (helpful or not helpful)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please log in to vote'}), 401
+    
+    from .models import Review, ReviewVote
+    
+    data = request.get_json()
+    is_helpful = data.get('is_helpful')
+    
+    if is_helpful is None:
+        return jsonify({'success': False, 'message': 'Invalid vote'}), 400
+    
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+    
+    # Can't vote on own review
+    if review.user_id == session['user_id']:
+        return jsonify({'success': False, 'message': 'Cannot vote on your own review'}), 400
+    
+    # Check existing vote
+    existing_vote = ReviewVote.query.filter_by(
+        user_id=session['user_id'],
+        review_id=review_id
+    ).first()
+    
+    try:
+        if existing_vote:
+            # Update vote if different
+            if existing_vote.is_helpful != is_helpful:
+                # Decrement old vote count
+                if existing_vote.is_helpful:
+                    review.helpful_count = max(0, review.helpful_count - 1)
+                else:
+                    review.unhelpful_count = max(0, review.unhelpful_count - 1)
+                
+                # Increment new vote count
+                if is_helpful:
+                    review.helpful_count += 1
+                else:
+                    review.unhelpful_count += 1
+                
+                existing_vote.is_helpful = is_helpful
+            # If same vote, do nothing (already counted)
+        else:
+            # Create new vote
+            vote = ReviewVote(
+                user_id=session['user_id'],
+                review_id=review_id,
+                is_helpful=is_helpful
+            )
+            db.session.add(vote)
+            
+            # Increment vote count
+            if is_helpful:
+                review.helpful_count += 1
+            else:
+                review.unhelpful_count += 1
+        
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'helpful_count': review.helpful_count,
+            'unhelpful_count': review.unhelpful_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error voting on review: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to submit vote'}), 500
+
+
+@main.route('/api/reviews/<int:review_id>/vote', methods=['DELETE'])
+def remove_vote(review_id):
+    """Remove vote from a review"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Review, ReviewVote
+    
+    vote = ReviewVote.query.filter_by(
+        user_id=session['user_id'],
+        review_id=review_id
+    ).first()
+    
+    if not vote:
+        return jsonify({'success': False, 'message': 'Vote not found'}), 404
+    
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+    
+    try:
+        # Decrement vote count
+        if vote.is_helpful:
+            review.helpful_count = max(0, review.helpful_count - 1)
+        else:
+            review.unhelpful_count = max(0, review.unhelpful_count - 1)
+        
+        db.session.delete(vote)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'helpful_count': review.helpful_count,
+            'unhelpful_count': review.unhelpful_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error removing vote: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to remove vote'}), 500
+
+
+# Admin review moderation routes
+@main.route('/api/admin/reviews/<int:review_id>/status', methods=['PUT'])
+@admin_required
+def update_review_status(review_id):
+    """Update review moderation status (admin only)"""
+    from .models import Review
+    
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    if new_status not in ['pending', 'approved', 'rejected']:
+        return jsonify({'success': False, 'message': 'Invalid status'}), 400
+    
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
+    
+    review.status = new_status
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Review {new_status}'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating review status: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to update status'}), 500
+

@@ -60,14 +60,38 @@ class Book(db.Model):
 class Review(db.Model):
     __tablename__ = 'reviews'
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=True)  # Review title
     content = db.Column(db.Text, nullable=False)
-    rating = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    verified_purchase = db.Column(db.Boolean, default=False, nullable=False)  # Did user buy the book?
+    helpful_count = db.Column(db.Integer, default=0, nullable=False)  # Helpful votes
+    unhelpful_count = db.Column(db.Integer, default=0, nullable=False)  # Not helpful votes
+    status = db.Column(db.String(20), default='pending', nullable=False)  # pending, approved, rejected
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    votes = db.relationship('ReviewVote', backref='review', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Review {self.content[:20]}>'
+
+
+class ReviewVote(db.Model):
+    __tablename__ = 'review_votes'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    review_id = db.Column(db.Integer, db.ForeignKey('reviews.id'), nullable=False)
+    is_helpful = db.Column(db.Boolean, nullable=False)  # True = helpful, False = not helpful
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Ensure user can only vote once per review
+    __table_args__ = (db.UniqueConstraint('user_id', 'review_id', name='unique_user_review_vote'),)
+
+    def __repr__(self):
+        return f'<ReviewVote user={self.user_id} review={self.review_id}>'
 
 class ContactMessage(db.Model):
     __tablename__ = 'contact_messages'

@@ -1,0 +1,960 @@
+<!-- Reviews & Ratings Section Component -->
+<!-- Include this in your book detail page -->
+
+<div class="reviews-section" id="reviews-section">
+    <h2 class="reviews-title">⭐ Customer Reviews</h2>
+    
+    <!-- Rating Summary -->
+    <div class="rating-summary" id="rating-summary">
+        <div class="rating-overview">
+            <div class="average-rating">
+                <span class="rating-number">0.0</span>
+                <div class="stars-display"></div>
+                <span class="rating-count">0 reviews</span>
+            </div>
+        </div>
+        
+        <div class="rating-distribution">
+            <div class="rating-bar" data-star="5">
+                <span class="star-label">5 ⭐</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="bar-count">0</span>
+            </div>
+            <div class="rating-bar" data-star="4">
+                <span class="star-label">4 ⭐</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="bar-count">0</span>
+            </div>
+            <div class="rating-bar" data-star="3">
+                <span class="star-label">3 ⭐</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="bar-count">0</span>
+            </div>
+            <div class="rating-bar" data-star="2">
+                <span class="star-label">2 ⭐</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="bar-count">0</span>
+            </div>
+            <div class="rating-bar" data-star="1">
+                <span class="star-label">1 ⭐</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="bar-count">0</span>
+            </div>
+        </div>
+        
+        <div class="write-review-prompt">
+            <button onclick="openReviewModal()" class="btn btn-primary">
+                <i class="fas fa-star"></i> Write a Review
+            </button>
+        </div>
+    </div>
+    
+    <!-- Sort & Filter Controls -->
+    <div class="reviews-controls">
+        <label for="review-sort">Sort by:</label>
+        <select id="review-sort" onchange="loadReviews()">
+            <option value="recent">Most Recent</option>
+            <option value="helpful">Most Helpful</option>
+            <option value="rating_high">Highest Rating</option>
+            <option value="rating_low">Lowest Rating</option>
+        </select>
+    </div>
+    
+    <!-- Reviews List -->
+    <div class="reviews-list" id="reviews-list">
+        <div class="loading">Loading reviews...</div>
+    </div>
+</div>
+
+<!-- Write Review Modal -->
+<div id="review-modal" class="modal">
+    <div class="modal-content review-modal-content">
+        <div class="modal-header">
+            <h3>✍️ Write Your Review</h3>
+            <button onclick="closeReviewModal()" class="modal-close">&times;</button>
+        </div>
+        
+        <form id="review-form" onsubmit="submitReview(event)">
+            <div class="form-group">
+                <label>Rating *</label>
+                <div class="star-rating">
+                    <input type="radio" name="rating" value="5" id="star5" required>
+                    <label for="star5" class="star">★</label>
+                    <input type="radio" name="rating" value="4" id="star4">
+                    <label for="star4" class="star">★</label>
+                    <input type="radio" name="rating" value="3" id="star3">
+                    <label for="star3" class="star">★</label>
+                    <input type="radio" name="rating" value="2" id="star2">
+                    <label for="star2" class="star">★</label>
+                    <input type="radio" name="rating" value="1" id="star1">
+                    <label for="star1" class="star">★</label>
+                </div>
+                <div class="rating-text" id="rating-text">Select a rating</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="review-title">Review Title (optional)</label>
+                <input type="text" id="review-title" maxlength="200" 
+                       placeholder="What's most important to know?">
+            </div>
+            
+            <div class="form-group">
+                <label for="review-content">Your Review *</label>
+                <textarea id="review-content" required rows="6" maxlength="5000"
+                          placeholder="What did you like or dislike? What should other readers know?"></textarea>
+                <small class="char-count"><span id="char-count">0</span>/5000 characters</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="closeReviewModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div id="edit-review-modal" class="modal">
+    <div class="modal-content review-modal-content">
+        <div class="modal-header">
+            <h3>✏️ Edit Your Review</h3>
+            <button onclick="closeEditReviewModal()" class="modal-close">&times;</button>
+        </div>
+        
+        <form id="edit-review-form" onsubmit="updateReview(event)">
+            <input type="hidden" id="edit-review-id">
+            
+            <div class="form-group">
+                <label>Rating *</label>
+                <div class="star-rating">
+                    <input type="radio" name="edit-rating" value="5" id="edit-star5" required>
+                    <label for="edit-star5" class="star">★</label>
+                    <input type="radio" name="edit-rating" value="4" id="edit-star4">
+                    <label for="edit-star4" class="star">★</label>
+                    <input type="radio" name="edit-rating" value="3" id="edit-star3">
+                    <label for="edit-star3" class="star">★</label>
+                    <input type="radio" name="edit-rating" value="2" id="edit-star2">
+                    <label for="edit-star2" class="star">★</label>
+                    <input type="radio" name="edit-rating" value="1" id="edit-star1">
+                    <label for="edit-star1" class="star">★</label>
+                </div>
+                <div class="rating-text" id="edit-rating-text">Select a rating</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-review-title">Review Title (optional)</label>
+                <input type="text" id="edit-review-title" maxlength="200">
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-review-content">Your Review *</label>
+                <textarea id="edit-review-content" required rows="6" maxlength="5000"></textarea>
+                <small class="char-count"><span id="edit-char-count">0</span>/5000 characters</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="closeEditReviewModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Reviews Section Styles */
+.reviews-section {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.reviews-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Rating Summary */
+.rating-summary {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 30px;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.rating-overview {
+    text-align: center;
+}
+
+.average-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-number {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.stars-display {
+    font-size: 1.5rem;
+    color: #fbbf24;
+}
+
+.rating-count {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.rating-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rating-bar {
+    display: grid;
+    grid-template-columns: 60px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+}
+
+.star-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    transition: width 0.3s;
+}
+
+.bar-count {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: right;
+}
+
+.write-review-prompt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Reviews Controls */
+.reviews-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.reviews-controls label {
+    font-weight: 600;
+    color: #333;
+}
+
+.reviews-controls select {
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+/* Reviews List */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.review-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.review-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.review-username {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.review-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.verified-badge {
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.review-stars {
+    color: #fbbf24;
+    font-size: 1.2rem;
+}
+
+.review-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.review-action-btn {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.review-action-btn:hover {
+    background: #f3f4f6;
+}
+
+.review-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.review-content {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.review-footer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.helpful-vote {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.vote-btn {
+    background: none;
+    border: 1px solid #e5e7eb;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.vote-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.vote-btn.voted {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Star Rating Input */
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    font-size: 2.5rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #fbbf24;
+}
+
+.rating-text {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #667eea;
+    min-height: 30px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.review-modal-content {
+    background: white;
+    padding: 0;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+}
+
+#review-form,
+#edit-review-form {
+    padding: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.char-count {
+    display: block;
+    text-align: right;
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.no-reviews {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rating-summary {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .rating-bar {
+        grid-template-columns: 50px 1fr 30px;
+    }
+    
+    .review-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .review-actions {
+        align-self: flex-start;
+    }
+}
+</style>
+
+<script>
+// Global variable for book ID (set this in your book detail page)
+let currentBookId = null;
+
+// Initialize reviews section
+function initReviews(bookId) {
+    currentBookId = bookId;
+    loadReviews();
+    
+    // Character count for review content
+    const reviewContent = document.getElementById('review-content');
+    const charCount = document.getElementById('char-count');
+    if (reviewContent && charCount) {
+        reviewContent.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    }
+    
+    const editReviewContent = document.getElementById('edit-review-content');
+    const editCharCount = document.getElementById('edit-char-count');
+    if (editReviewContent && editCharCount) {
+        editReviewContent.addEventListener('input', function() {
+            editCharCount.textContent = this.value.length;
+        });
+    }
+    
+    // Rating text update
+    const ratingInputs = document.querySelectorAll('.star-rating input');
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const ratingTexts = ['Terrible', 'Poor', 'Average', 'Good', 'Excellent'];
+            const ratingText = this.closest('form').querySelector('.rating-text');
+            if (ratingText) {
+                ratingText.textContent = ratingTexts[this.value - 1];
+            }
+        });
+    });
+}
+
+// Load reviews
+async function loadReviews() {
+    const sortBy = document.getElementById('review-sort').value;
+    const reviewsList = document.getElementById('reviews-list');
+    
+    reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
+    
+    try {
+        const response = await fetch(`/api/books/${currentBookId}/reviews?sort=${sortBy}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateRatingSummary(data.stats);
+            displayReviews(data.reviews);
+        } else {
+            reviewsList.innerHTML = '<div class="no-reviews">Failed to load reviews</div>';
+        }
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        reviewsList.innerHTML = '<div class="no-reviews">Error loading reviews</div>';
+    }
+}
+
+// Update rating summary
+function updateRatingSummary(stats) {
+    const ratingNumber = document.querySelector('.rating-number');
+    const starsDisplay = document.querySelector('.stars-display');
+    const ratingCount = document.querySelector('.rating-count');
+    
+    ratingNumber.textContent = stats.average.toFixed(1);
+    starsDisplay.innerHTML = getStarsHTML(stats.average);
+    ratingCount.textContent = `${stats.total} ${stats.total === 1 ? 'review' : 'reviews'}`;
+    
+    // Update distribution bars
+    for (let i = 1; i <= 5; i++) {
+        const bar = document.querySelector(`.rating-bar[data-star="${i}"] .bar-fill`);
+        const count = document.querySelector(`.rating-bar[data-star="${i}"] .bar-count`);
+        const percentage = stats.total > 0 ? (stats.distribution[i] / stats.total * 100) : 0;
+        
+        bar.style.width = `${percentage}%`;
+        count.textContent = stats.distribution[i];
+    }
+}
+
+// Display reviews
+function displayReviews(reviews) {
+    const reviewsList = document.getElementById('reviews-list');
+    
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<div class="no-reviews">No reviews yet. Be the first to review this book!</div>';
+        return;
+    }
+    
+    reviewsList.innerHTML = reviews.map(review => createReviewHTML(review)).join('');
+}
+
+// Create review HTML
+function createReviewHTML(review) {
+    const isOwnReview = '{{ session.get("username") }}' === review.username;
+    
+    return `
+        <div class="review-card" data-review-id="${review.id}">
+            <div class="review-header">
+                <div class="review-user-info">
+                    <span class="review-username">${review.username}</span>
+                    <div class="review-meta">
+                        <span class="review-stars">${getStarsHTML(review.rating)}</span>
+                        ${review.verified_purchase ? '<span class="verified-badge">✓ Verified Purchase</span>' : ''}
+                        <span>${review.created_at}</span>
+                    </div>
+                </div>
+                <div class="review-actions">
+                    ${isOwnReview ? `
+                        <button onclick="openEditReviewModal(${review.id})" class="review-action-btn">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button onclick="deleteReview(${review.id})" class="review-action-btn">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+            
+            ${review.title ? `<div class="review-title">${review.title}</div>` : ''}
+            <div class="review-content">${review.content}</div>
+            
+            <div class="review-footer">
+                <span class="helpful-vote">Was this helpful?</span>
+                <button onclick="voteReview(${review.id}, true)" 
+                        class="vote-btn ${review.user_vote === true ? 'voted' : ''}"
+                        ${!isOwnReview ? '' : 'disabled'}>
+                    <i class="fas fa-thumbs-up"></i> Yes (${review.helpful_count})
+                </button>
+                <button onclick="voteReview(${review.id}, false)" 
+                        class="vote-btn ${review.user_vote === false ? 'voted' : ''}"
+                        ${!isOwnReview ? '' : 'disabled'}>
+                    <i class="fas fa-thumbs-down"></i> No (${review.unhelpful_count})
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Get stars HTML
+function getStarsHTML(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let html = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        html += '★';
+    }
+    if (hasHalfStar) {
+        html += '½';
+    }
+    for (let i = Math.ceil(rating); i < 5; i++) {
+        html += '☆';
+    }
+    
+    return html;
+}
+
+// Modal functions
+function openReviewModal() {
+    document.getElementById('review-modal').classList.add('active');
+}
+
+function closeReviewModal() {
+    document.getElementById('review-modal').classList.remove('active');
+    document.getElementById('review-form').reset();
+    document.getElementById('rating-text').textContent = 'Select a rating';
+    document.getElementById('char-count').textContent = '0';
+}
+
+// Submit review
+async function submitReview(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = {
+        rating: formData.get('rating'),
+        title: document.getElementById('review-title').value,
+        content: document.getElementById('review-content').value
+    };
+    
+    try {
+        const response = await fetch(`/api/books/${currentBookId}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Review submitted successfully!', 'success');
+            closeReviewModal();
+            loadReviews();
+        } else {
+            showToast(result.message || 'Failed to submit review', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Open edit review modal
+async function openEditReviewModal(reviewId) {
+    // Find review data from current display
+    const reviewCard = document.querySelector(`[data-review-id="${reviewId}"]`);
+    const title = reviewCard.querySelector('.review-title')?.textContent || '';
+    const content = reviewCard.querySelector('.review-content').textContent;
+    const starsText = reviewCard.querySelector('.review-stars').textContent;
+    const rating = starsText.split('★').length - 1;
+    
+    // Populate form
+    document.getElementById('edit-review-id').value = reviewId;
+    document.getElementById('edit-review-title').value = title;
+    document.getElementById('edit-review-content').value = content;
+    document.getElementById('edit-char-count').textContent = content.length;
+    document.getElementById(`edit-star${rating}`).checked = true;
+    document.getElementById('edit-rating-text').textContent = ['Terrible', 'Poor', 'Average', 'Good', 'Excellent'][rating - 1];
+    
+    document.getElementById('edit-review-modal').classList.add('active');
+}
+
+function closeEditReviewModal() {
+    document.getElementById('edit-review-modal').classList.remove('active');
+    document.getElementById('edit-review-form').reset();
+}
+
+// Update review
+async function updateReview(event) {
+    event.preventDefault();
+    
+    const reviewId = document.getElementById('edit-review-id').value;
+    const formData = new FormData(event.target);
+    const data = {
+        rating: formData.get('edit-rating'),
+        title: document.getElementById('edit-review-title').value,
+        content: document.getElementById('edit-review-content').value
+    };
+    
+    try {
+        const response = await fetch(`/api/reviews/${reviewId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Review updated successfully!', 'success');
+            closeEditReviewModal();
+            loadReviews();
+        } else {
+            showToast(result.message || 'Failed to update review', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Delete review
+async function deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete this review?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/reviews/${reviewId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Review deleted successfully', 'success');
+            loadReviews();
+        } else {
+            showToast(result.message || 'Failed to delete review', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Vote on review
+async function voteReview(reviewId, isHelpful) {
+    try {
+        const response = await fetch(`/api/reviews/${reviewId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_helpful: isHelpful })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            loadReviews(); // Reload to update vote counts
+        } else {
+            showToast(result.message || 'Failed to vote', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const reviewModal = document.getElementById('review-modal');
+    const editModal = document.getElementById('edit-review-modal');
+    
+    if (event.target === reviewModal) {
+        closeReviewModal();
+    }
+    if (event.target === editModal) {
+        closeEditReviewModal();
+    }
+}
+</script>
