@@ -1145,3 +1145,200 @@ def print_order(order_id):
     
     return render_template('print_order.html', order=order)
 
+
+# ============================================================================
+# USER PROFILE ROUTES
+# ============================================================================
+
+@main.route('/profile')
+def profile():
+    """User profile page"""
+    if 'user_id' not in session:
+        flash('Please log in to view your profile', 'warning')
+        return redirect(url_for('main.login'))
+    
+    from .models import User, Order, OrderItem, Review
+    from sqlalchemy import func
+    
+    user = User.query.get(session['user_id'])
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('main.logout'))
+    
+    # Get user statistics
+    order_count = Order.query.filter_by(user_id=user.id).count()
+    
+    # Calculate total spent
+    total_spent_result = db.session.query(
+        func.sum(Order.total_amount)
+    ).filter(
+        Order.user_id == user.id,
+        Order.payment_status == 'paid'
+    ).scalar()
+    total_spent = float(total_spent_result) if total_spent_result else 0.0
+    
+    # Calculate items purchased
+    items_purchased_result = db.session.query(
+        func.sum(OrderItem.quantity)
+    ).join(Order).filter(
+        Order.user_id == user.id,
+        Order.payment_status == 'paid'
+    ).scalar()
+    items_purchased = int(items_purchased_result) if items_purchased_result else 0
+    
+    # Get review count
+    review_count = Review.query.filter_by(user_id=user.id).count()
+    
+    return render_template('profile.html',
+                         user=user,
+                         order_count=order_count,
+                         total_spent=total_spent,
+                         items_purchased=items_purchased,
+                         review_count=review_count)
+
+
+@main.route('/api/profile/update', methods=['PUT'])
+def update_profile():
+    """Update user profile information"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import User
+    
+    data = request.get_json()
+    user = User.query.get(session['user_id'])
+    
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    
+    # Validate username
+    if 'username' in data:
+        username = data['username'].strip()
+        if not username:
+            return jsonify({'success': False, 'message': 'Username cannot be empty'}), 400
+        
+        # Check if username is taken by another user
+        existing = User.query.filter(User.username == username, User.id != user.id).first()
+        if existing:
+            return jsonify({'success': False, 'message': 'Username already taken'}), 400
+        
+        user.username = username
+        session['username'] = username  # Update session
+    
+    # Validate email
+    if 'email' in data:
+        email = data['email'].strip().lower()
+        if not email:
+            return jsonify({'success': False, 'message': 'Email cannot be empty'}), 400
+        
+        # Basic email validation
+        import re
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            return jsonify({'success': False, 'message': 'Invalid email format'}), 400
+        
+        # Check if email is taken by another user
+        existing = User.query.filter(User.email == email, User.id != user.id).first()
+        if existing:
+            return jsonify({'success': False, 'message': 'Email already taken'}), 400
+        
+        user.email = email
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Profile updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating profile: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to update profile'}), 500
+
+
+@main.route('/api/profile/change-password', methods=['POST'])
+def change_password():
+    """Change user password"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import User
+    import bcrypt
+    
+    data = request.get_json()
+    user = User.query.get(session['user_id'])
+    
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    
+    # Validate required fields
+    if not all(k in data for k in ['current_password', 'new_password', 'confirm_password']):
+        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+    
+    # Verify current password
+    if not bcrypt.checkpw(data['current_password'].encode('utf-8'), user.password.encode('utf-8')):
+        return jsonify({'success': False, 'message': 'Current password is incorrect'}), 400
+    
+    # Validate new password
+    if len(data['new_password']) < 6:
+        return jsonify({'success': False, 'message': 'New password must be at least 6 characters'}), 400
+    
+    if data['new_password'] != data['confirm_password']:
+        return jsonify({'success': False, 'message': 'New passwords do not match'}), 400
+    
+    # Don't allow same password
+    if data['current_password'] == data['new_password']:
+        return jsonify({'success': False, 'message': 'New password must be different from current password'}), 400
+    
+    # Hash and update password
+    hashed_password = bcrypt.hashpw(data['new_password'].encode('utf-8'), bcrypt.gensalt())
+    user.password = hashed_password.decode('utf-8')
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Password changed successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error changing password: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to change password'}), 500
+
+
+@main.route('/api/profile/delete', methods=['DELETE'])
+def delete_account():
+    """Delete user account and all associated data"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import User, Order, Cart, Review, ContactMessage
+    
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    
+    # Don't allow admin to delete their account if they're the only admin
+    if user.is_admin:
+        admin_count = User.query.filter_by(is_admin=True).count()
+        if admin_count <= 1:
+            return jsonify({
+                'success': False, 
+                'message': 'Cannot delete the only admin account'
+            }), 400
+    
+    try:
+        # Delete associated data (CASCADE should handle most of this, but being explicit)
+        # Orders and order items will cascade delete
+        # Cart and cart items will cascade delete
+        Review.query.filter_by(user_id=user_id).delete()
+        ContactMessage.query.filter_by(user_id=user_id).delete()
+        
+        # Delete user
+        db.session.delete(user)
+        db.session.commit()
+        
+        # Clear session
+        session.clear()
+        
+        return jsonify({'success': True, 'message': 'Account deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting account: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to delete account'}), 500
+

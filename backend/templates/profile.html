@@ -1,0 +1,713 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Sky Readers Haven{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>👤 My Profile</h1>
+    
+    <div class="profile-grid">
+        <!-- Profile Information Card -->
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>📝 Profile Information</h2>
+                <button onclick="editProfile()" class="btn-edit">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            
+            <div class="profile-info" id="profile-view">
+                <div class="info-row">
+                    <span class="label">Username:</span>
+                    <span class="value">{{ user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Member Since:</span>
+                    <span class="value">{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Account Type:</span>
+                    <span class="value">
+                        {% if user.is_admin %}
+                            <span class="badge badge-admin">Administrator</span>
+                        {% else %}
+                            <span class="badge badge-customer">Customer</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Edit Form (Hidden by default) -->
+            <div class="profile-edit" id="profile-edit" style="display: none;">
+                <form id="edit-profile-form">
+                    <div class="form-group">
+                        <label for="username">Username *</label>
+                        <input type="text" id="username" name="username" 
+                               value="{{ user.username }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" 
+                               value="{{ user.email }}" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="cancelEdit()" class="btn btn-secondary">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Change Password Card -->
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>🔒 Change Password</h2>
+            </div>
+            
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="current_password">Current Password *</label>
+                    <div class="password-input">
+                        <input type="password" id="current_password" name="current_password" required>
+                        <button type="button" onclick="togglePassword('current_password')" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">New Password *</label>
+                    <div class="password-input">
+                        <input type="password" id="new_password" name="new_password" 
+                               minlength="6" required>
+                        <button type="button" onclick="togglePassword('new_password')" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="hint">Minimum 6 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password *</label>
+                    <div class="password-input">
+                        <input type="password" id="confirm_password" name="confirm_password" 
+                               minlength="6" required>
+                        <button type="button" onclick="togglePassword('confirm_password')" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="password-strength" class="password-strength"></div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-key"></i> Update Password
+                </button>
+            </form>
+        </div>
+        
+        <!-- Account Statistics Card -->
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>📊 Account Statistics</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-details">
+                        <h3>{{ order_count }}</h3>
+                        <p>Total Orders</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-details">
+                        <h3>${{ "%.2f"|format(total_spent) }}</h3>
+                        <p>Total Spent</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-details">
+                        <h3>{{ items_purchased }}</h3>
+                        <p>Books Purchased</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-details">
+                        <h3>{{ review_count }}</h3>
+                        <p>Reviews Written</p>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('main.order_history') }}" class="btn btn-outline btn-block">
+                <i class="fas fa-history"></i> View Order History
+            </a>
+        </div>
+        
+        <!-- Quick Actions Card -->
+        <div class="profile-card">
+            <div class="card-header">
+                <h2>⚡ Quick Actions</h2>
+            </div>
+            
+            <div class="quick-actions">
+                <a href="{{ url_for('main.view_cart') }}" class="action-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>View Cart</span>
+                </a>
+                
+                <a href="{{ url_for('main.order_history') }}" class="action-btn">
+                    <i class="fas fa-list"></i>
+                    <span>My Orders</span>
+                </a>
+                
+                <a href="{{ url_for('main.books') }}" class="action-btn">
+                    <i class="fas fa-book"></i>
+                    <span>Browse Books</span>
+                </a>
+                
+                <a href="{{ url_for('main.contact') }}" class="action-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Danger Zone Card -->
+        <div class="profile-card danger-card">
+            <div class="card-header">
+                <h2>⚠️ Danger Zone</h2>
+            </div>
+            
+            <p class="danger-text">
+                Once you delete your account, there is no going back. 
+                This will permanently delete your profile, orders, and all associated data.
+            </p>
+            
+            <button onclick="confirmDeleteAccount()" class="btn btn-danger btn-block">
+                <i class="fas fa-trash"></i> Delete Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.profile-container h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.btn-edit {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: #5568d3;
+}
+
+.profile-info .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.profile-info .info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-weight: 600;
+    color: #555;
+}
+
+.info-row .value {
+    color: #333;
+    text-align: right;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-customer {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.password-input {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.toggle-password:hover {
+    color: #667eea;
+}
+
+.hint {
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.password-strength {
+    margin: 10px 0;
+    height: 4px;
+    border-radius: 2px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.password-strength::after {
+    content: '';
+    display: block;
+    height: 100%;
+    transition: all 0.3s;
+}
+
+.password-strength.weak::after {
+    width: 33%;
+    background: #ef4444;
+}
+
+.password-strength.medium::after {
+    width: 66%;
+    background: #f59e0b;
+}
+
+.password-strength.strong::after {
+    width: 100%;
+    background: #10b981;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-details h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.stat-details p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+}
+
+.danger-card {
+    border: 2px solid #fee2e2;
+}
+
+.danger-card .card-header {
+    border-bottom-color: #fee2e2;
+}
+
+.danger-text {
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-outline {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-block {
+    width: 100%;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid,
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Edit profile
+function editProfile() {
+    document.getElementById('profile-view').style.display = 'none';
+    document.getElementById('profile-edit').style.display = 'block';
+}
+
+function cancelEdit() {
+    document.getElementById('profile-view').style.display = 'block';
+    document.getElementById('profile-edit').style.display = 'none';
+}
+
+// Handle profile edit form
+document.getElementById('edit-profile-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('/api/profile/update', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Profile updated successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+});
+
+// Handle password change form
+document.getElementById('change-password-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Validate passwords match
+    if (data.new_password !== data.confirm_password) {
+        showToast('New passwords do not match', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/profile/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Password changed successfully!', 'success');
+            e.target.reset();
+            document.getElementById('password-strength').className = 'password-strength';
+        } else {
+            showToast(result.message || 'Failed to change password', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+});
+
+// Password strength indicator
+document.getElementById('new_password').addEventListener('input', function(e) {
+    const password = e.target.value;
+    const strengthBar = document.getElementById('password-strength');
+    
+    if (password.length === 0) {
+        strengthBar.className = 'password-strength';
+        return;
+    }
+    
+    let strength = 0;
+    if (password.length >= 6) strength++;
+    if (password.length >= 10) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^a-zA-Z\d]/.test(password)) strength++;
+    
+    if (strength <= 2) {
+        strengthBar.className = 'password-strength weak';
+    } else if (strength <= 4) {
+        strengthBar.className = 'password-strength medium';
+    } else {
+        strengthBar.className = 'password-strength strong';
+    }
+});
+
+// Toggle password visibility
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Delete account confirmation
+function confirmDeleteAccount() {
+    const confirmed = confirm(
+        'Are you absolutely sure you want to delete your account?\n\n' +
+        'This will permanently delete:\n' +
+        '• Your profile and account information\n' +
+        '• All order history\n' +
+        '• Reviews and ratings\n' +
+        '• Shopping cart\n\n' +
+        'This action CANNOT be undone!'
+    );
+    
+    if (confirmed) {
+        const doubleConfirm = prompt('Type "DELETE" to confirm account deletion:');
+        
+        if (doubleConfirm === 'DELETE') {
+            deleteAccount();
+        } else {
+            showToast('Account deletion cancelled', 'info');
+        }
+    }
+}
+
+async function deleteAccount() {
+    try {
+        const response = await fetch('/api/profile/delete', {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Account deleted successfully', 'success');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } else {
+            showToast(result.message || 'Failed to delete account', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+</script>
+
+{% endblock %}
