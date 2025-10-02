@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+
+{% block title %}My Wishlist - Sky Readers Haven{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    <div class="wishlist-header">
+        <h1>💖 My Wishlist</h1>
+        <div class="wishlist-stats">
+            <span class="stat-badge">{{ count }} {{ 'item' if count == 1 else 'items' }}</span>
+        </div>
+    </div>
+    
+    {% if count == 0 %}
+    <div class="empty-wishlist">
+        <div class="empty-icon">📚</div>
+        <h2>Your Wishlist is Empty</h2>
+        <p>Start adding books you love to your wishlist!</p>
+        <a href="{{ url_for('main.books') }}" class="btn btn-primary">
+            <i class="fas fa-book"></i> Browse Books
+        </a>
+    </div>
+    {% else %}
+    <div class="wishlist-grid">
+        {% for item in items %}
+        <div class="wishlist-card" data-book-id="{{ item.book_id }}">
+            <div class="card-header">
+                <div class="book-info">
+                    <h3 class="book-title">{{ item.book_title }}</h3>
+                    <p class="book-author">by {{ item.author_name }}</p>
+                </div>
+                <button onclick="removeFromWishlist({{ item.book_id }})" 
+                        class="btn-remove" title="Remove from wishlist">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="card-body">
+                <p class="book-description">
+                    {{ item.book_description[:150] }}{% if item.book_description|length > 150 %}...{% endif %}
+                </p>
+                
+                <div class="book-price">
+                    <span class="price-label">Price:</span>
+                    <span class="price-value">${{ "%.2f"|format(item.book_price) }}</span>
+                </div>
+                
+                <div class="added-date">
+                    <i class="far fa-calendar"></i> Added {{ item.added_date }}
+                </div>
+                
+                {% if item.notes %}
+                <div class="wishlist-notes">
+                    <strong>Notes:</strong> {{ item.notes }}
+                </div>
+                {% endif %}
+                
+                <div class="notes-section">
+                    <button onclick="toggleNotes({{ item.wishlist_id }})" class="btn-notes">
+                        <i class="fas fa-sticky-note"></i> 
+                        {% if item.notes %}Edit Notes{% else %}Add Notes{% endif %}
+                    </button>
+                    <div id="notes-form-{{ item.wishlist_id }}" class="notes-form" style="display: none;">
+                        <textarea id="notes-text-{{ item.wishlist_id }}" 
+                                  placeholder="Add personal notes about this book..."
+                                  maxlength="500">{{ item.notes if item.notes else '' }}</textarea>
+                        <div class="notes-actions">
+                            <button onclick="saveNotes({{ item.wishlist_id }})" class="btn btn-sm btn-primary">
+                                Save
+                            </button>
+                            <button onclick="cancelNotes({{ item.wishlist_id }})" class="btn btn-sm btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <button onclick="moveToCart({{ item.book_id }})" class="btn btn-primary btn-block">
+                    <i class="fas fa-shopping-cart"></i> Move to Cart
+                </button>
+                <a href="/books" class="btn btn-outline btn-block">
+                    <i class="fas fa-info-circle"></i> View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="wishlist-actions">
+        <button onclick="clearWishlist()" class="btn btn-outline-danger">
+            <i class="fas fa-trash"></i> Clear All
+        </button>
+        <a href="{{ url_for('main.books') }}" class="btn btn-outline">
+            <i class="fas fa-plus"></i> Add More Books
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.wishlist-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.wishlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #e5e7eb;
+}
+
+.wishlist-header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.wishlist-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Empty State */
+.empty-wishlist {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+}
+
+.empty-wishlist h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.empty-wishlist p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* Wishlist Grid */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.wishlist-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.wishlist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 20px 15px;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.book-info {
+    flex: 1;
+}
+
+.book-title {
+    font-size: 1.3rem;
+    color: #333;
+    margin: 0 0 5px 0;
+    font-weight: 700;
+}
+
+.book-author {
+    color: #667eea;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.btn-remove {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-remove:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.card-body {
+    padding: 20px;
+    flex: 1;
+}
+
+.book-description {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+.book-price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.price-label {
+    color: #666;
+    font-weight: 600;
+}
+
+.price-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.added-date {
+    color: #999;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.wishlist-notes {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.notes-section {
+    margin-top: 15px;
+}
+
+.btn-notes {
+    background: #f3f4f6;
+    color: #667eea;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.btn-notes:hover {
+    background: #667eea;
+    color: white;
+}
+
+.notes-form {
+    margin-top: 10px;
+}
+
+.notes-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+.notes-form textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.notes-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.card-footer {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 2px solid #f3f4f6;
+}
+
+/* Wishlist Actions */
+.wishlist-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.btn-outline {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-outline-danger {
+    background: white;
+    border: 2px solid #dc2626;
+    color: #dc2626;
+}
+
+.btn-outline-danger:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wishlist-header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    
+    .wishlist-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wishlist-actions {
+        flex-direction: column;
+    }
+    
+    .wishlist-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// Remove from wishlist
+async function removeFromWishlist(bookId) {
+    if (!confirm('Remove this book from your wishlist?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/wishlist/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Removed from wishlist', 'success');
+            
+            // Remove card from display
+            const card = document.querySelector(`[data-book-id="${bookId}"]`);
+            card.style.transition = 'all 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                location.reload(); // Reload to update count
+            }, 300);
+        } else {
+            showToast(result.message || 'Failed to remove', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Move to cart
+async function moveToCart(bookId) {
+    try {
+        const response = await fetch('/api/wishlist/move-to-cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Moved to cart!', 'success');
+            
+            // Update cart count if available
+            if (result.cart_count) {
+                const cartBadge = document.getElementById('cart-count');
+                if (cartBadge) {
+                    cartBadge.textContent = result.cart_count;
+                }
+            }
+            
+            // Remove card
+            const card = document.querySelector(`[data-book-id="${bookId}"]`);
+            card.style.transition = 'all 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(100%)';
+            
+            setTimeout(() => {
+                location.reload();
+            }, 300);
+        } else {
+            showToast(result.message || 'Failed to move to cart', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Toggle notes form
+function toggleNotes(wishlistId) {
+    const form = document.getElementById(`notes-form-${wishlistId}`);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Save notes
+async function saveNotes(wishlistId) {
+    const textarea = document.getElementById(`notes-text-${wishlistId}`);
+    const notes = textarea.value.trim();
+    
+    try {
+        const response = await fetch(`/api/wishlist/${wishlistId}/notes`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes: notes })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Notes saved!', 'success');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            showToast(result.message || 'Failed to save notes', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+// Cancel notes
+function cancelNotes(wishlistId) {
+    const form = document.getElementById(`notes-form-${wishlistId}`);
+    form.style.display = 'none';
+}
+
+// Clear all wishlist
+async function clearWishlist() {
+    if (!confirm('Are you sure you want to clear your entire wishlist?')) {
+        return;
+    }
+    
+    const confirmed = confirm('This action cannot be undone. Clear all items?');
+    if (!confirmed) {
+        return;
+    }
+    
+    // Get all book IDs
+    const cards = document.querySelectorAll('.wishlist-card');
+    let removed = 0;
+    let failed = 0;
+    
+    for (const card of cards) {
+        const bookId = card.getAttribute('data-book-id');
+        
+        try {
+            const response = await fetch('/api/wishlist/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: parseInt(bookId) })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                removed++;
+            } else {
+                failed++;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            failed++;
+        }
+    }
+    
+    if (removed > 0) {
+        showToast(`Removed ${removed} items from wishlist`, 'success');
+        setTimeout(() => location.reload(), 1000);
+    }
+    
+    if (failed > 0) {
+        showToast(`Failed to remove ${failed} items`, 'error');
+    }
+}
+</script>
+
+{% endblock %}

@@ -1696,3 +1696,251 @@ def update_review_status(review_id):
         print(f"Error updating review status: {str(e)}")
         return jsonify({'success': False, 'message': 'Failed to update status'}), 500
 
+
+# ============================================================================
+# WISHLIST/FAVORITES ROUTES
+# ============================================================================
+
+@main.route('/wishlist')
+def wishlist():
+    """Wishlist page"""
+    if 'user_id' not in session:
+        flash('Please log in to view your wishlist', 'warning')
+        return redirect(url_for('main.login'))
+    
+    from .models import Wishlist, Book, Author
+    
+    # Get all wishlist items for user with book details
+    wishlist_items = db.session.query(Wishlist, Book, Author).join(
+        Book, Wishlist.book_id == Book.id
+    ).join(
+        Author, Book.author_id == Author.id
+    ).filter(
+        Wishlist.user_id == session['user_id']
+    ).order_by(Wishlist.created_at.desc()).all()
+    
+    # Format data for template
+    items = []
+    for wishlist, book, author in wishlist_items:
+        items.append({
+            'wishlist_id': wishlist.id,
+            'book_id': book.id,
+            'book_title': book.title,
+            'book_description': book.description,
+            'book_price': book.price,
+            'author_name': author.name,
+            'added_date': wishlist.created_at.strftime('%B %d, %Y'),
+            'notes': wishlist.notes
+        })
+    
+    return render_template('wishlist.html', items=items, count=len(items))
+
+
+@main.route('/api/wishlist')
+def get_wishlist():
+    """Get user's wishlist items (API)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Wishlist
+    
+    wishlist_items = Wishlist.query.filter_by(user_id=session['user_id']).all()
+    book_ids = [item.book_id for item in wishlist_items]
+    
+    return jsonify({
+        'success': True,
+        'book_ids': book_ids,
+        'count': len(book_ids)
+    })
+
+
+@main.route('/api/wishlist/add', methods=['POST'])
+def add_to_wishlist():
+    """Add book to wishlist"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please log in to add to wishlist'}), 401
+    
+    from .models import Wishlist, Book
+    
+    data = request.get_json()
+    book_id = data.get('book_id')
+    notes = data.get('notes', '').strip()
+    
+    if not book_id:
+        return jsonify({'success': False, 'message': 'Book ID required'}), 400
+    
+    # Check if book exists
+    book = Book.query.get(book_id)
+    if not book:
+        return jsonify({'success': False, 'message': 'Book not found'}), 404
+    
+    # Check if already in wishlist
+    existing = Wishlist.query.filter_by(
+        user_id=session['user_id'],
+        book_id=book_id
+    ).first()
+    
+    if existing:
+        return jsonify({'success': False, 'message': 'Book already in wishlist'}), 400
+    
+    # Add to wishlist
+    wishlist_item = Wishlist(
+        user_id=session['user_id'],
+        book_id=book_id,
+        notes=notes if notes else None
+    )
+    
+    try:
+        db.session.add(wishlist_item)
+        db.session.commit()
+        
+        # Get updated count
+        count = Wishlist.query.filter_by(user_id=session['user_id']).count()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Added to wishlist!',
+            'wishlist_count': count
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error adding to wishlist: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to add to wishlist'}), 500
+
+
+@main.route('/api/wishlist/remove', methods=['POST'])
+def remove_from_wishlist():
+    """Remove book from wishlist"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Wishlist
+    
+    data = request.get_json()
+    book_id = data.get('book_id')
+    
+    if not book_id:
+        return jsonify({'success': False, 'message': 'Book ID required'}), 400
+    
+    wishlist_item = Wishlist.query.filter_by(
+        user_id=session['user_id'],
+        book_id=book_id
+    ).first()
+    
+    if not wishlist_item:
+        return jsonify({'success': False, 'message': 'Book not in wishlist'}), 404
+    
+    try:
+        db.session.delete(wishlist_item)
+        db.session.commit()
+        
+        # Get updated count
+        count = Wishlist.query.filter_by(user_id=session['user_id']).count()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Removed from wishlist',
+            'wishlist_count': count
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error removing from wishlist: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to remove from wishlist'}), 500
+
+
+@main.route('/api/wishlist/<int:wishlist_id>/notes', methods=['PUT'])
+def update_wishlist_notes(wishlist_id):
+    """Update notes for wishlist item"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Wishlist
+    
+    wishlist_item = Wishlist.query.get(wishlist_id)
+    
+    if not wishlist_item:
+        return jsonify({'success': False, 'message': 'Wishlist item not found'}), 404
+    
+    # Check ownership
+    if wishlist_item.user_id != session['user_id']:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    notes = data.get('notes', '').strip()
+    
+    wishlist_item.notes = notes if notes else None
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Notes updated'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating wishlist notes: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to update notes'}), 500
+
+
+@main.route('/api/wishlist/move-to-cart', methods=['POST'])
+def move_wishlist_to_cart():
+    """Move wishlist item to cart"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    from .models import Wishlist, Cart, CartItem
+    
+    data = request.get_json()
+    book_id = data.get('book_id')
+    
+    if not book_id:
+        return jsonify({'success': False, 'message': 'Book ID required'}), 400
+    
+    # Check if in wishlist
+    wishlist_item = Wishlist.query.filter_by(
+        user_id=session['user_id'],
+        book_id=book_id
+    ).first()
+    
+    if not wishlist_item:
+        return jsonify({'success': False, 'message': 'Book not in wishlist'}), 404
+    
+    # Get or create cart
+    cart = Cart.query.filter_by(user_id=session['user_id']).first()
+    if not cart:
+        cart = Cart(user_id=session['user_id'])
+        db.session.add(cart)
+        db.session.flush()
+    
+    # Check if already in cart
+    cart_item = CartItem.query.filter_by(cart_id=cart.id, book_id=book_id).first()
+    
+    try:
+        if cart_item:
+            # Already in cart, just increase quantity
+            cart_item.quantity += 1
+        else:
+            # Add new cart item
+            cart_item = CartItem(
+                cart_id=cart.id,
+                book_id=book_id,
+                quantity=1
+            )
+            db.session.add(cart_item)
+        
+        # Remove from wishlist
+        db.session.delete(wishlist_item)
+        db.session.commit()
+        
+        # Get updated counts
+        wishlist_count = Wishlist.query.filter_by(user_id=session['user_id']).count()
+        cart_count = CartItem.query.filter_by(cart_id=cart.id).count()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Moved to cart!',
+            'wishlist_count': wishlist_count,
+            'cart_count': cart_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error moving to cart: {str(e)}")
+        return jsonify({'success': False, 'message': 'Failed to move to cart'}), 500
+

@@ -200,3 +200,22 @@ class OrderItem(db.Model):
     
     def __repr__(self):
         return f'<OrderItem Order {self.order_id} Book {self.book_id}>'
+
+
+class Wishlist(db.Model):
+    __tablename__ = 'wishlists'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    notes = db.Column(db.String(500))  # Optional personal notes
+    
+    # Relationships
+    user = db.relationship('User', backref='wishlist_items', lazy=True)
+    book = db.relationship('Book', backref='wishlist_items', lazy=True)
+    
+    # Ensure user can only add same book once
+    __table_args__ = (db.UniqueConstraint('user_id', 'book_id', name='unique_user_book_wishlist'),)
+    
+    def __repr__(self):
+        return f'<Wishlist User {self.user_id} Book {self.book_id}>'
