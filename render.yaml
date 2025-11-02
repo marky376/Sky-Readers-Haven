@@ -2,6 +2,7 @@ services:
   - type: web
     name: sky-readers-haven
     env: python
+    plan: free # Use the free tier for the web service
     buildCommand: ./render_build.sh
     startCommand: gunicorn --chdir backend "app:create_app('production')"
     envVars:
@@ -17,7 +18,6 @@ services:
         generateValue: true
       - key: JWT_SECRET_KEY
         generateValue: true
-      # Mail Configuration - Add your values in the Render Dashboard
       - key: MAIL_SERVER
         value: "smtp.googlemail.com"
       - key: MAIL_PORT
@@ -28,10 +28,8 @@ services:
         value: ""
       - key: MAIL_PASSWORD
         value: ""
-      # Google Books API - Add your value in the Render Dashboard
       - key: GOOGLE_BOOKS_API_KEY
         value: ""
-      # Stripe Configuration - Add your values in the Render Dashboard
       - key: STRIPE_SECRET_KEY
         value: ""
       - key: STRIPE_PUBLISHABLE_KEY
@@ -41,5 +39,6 @@ services:
 
 databases:
   - name: sky-readers-haven-db
+    plan: free # Use the free tier for the database
     databaseName: sky_readers_haven
     user: sky_readers_haven_user
