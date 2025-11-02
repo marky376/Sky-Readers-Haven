@@ -1,0 +1,14 @@
+site_name: "Sky Readers' Haven"
+site_description: "Project documentation generated from repository markdown"
+docs_dir: "."          # use repo root so existing .md files are picked up
+site_dir: "site"
+theme:
+  name: "readthedocs"
+nav:
+  - Home: README.md
+  - Email Notifications Guide: EMAIL_NOTIFICATIONS_GUIDE.md
+  - Checkout Summary: PHASE6_TASK3_CHECKOUT_SUMMARY.md
+extra:
+  social:
+    - type: "github"
+      link: "https://github.com/marky376/Sky-Readers-Haven"
