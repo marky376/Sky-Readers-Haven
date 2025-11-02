@@ -2,8 +2,9 @@ services:
   - type: web
     name: sky-readers-haven
     env: python
+    pythonVersion: "3.11"
     buildCommand: ./render_build.sh
-    startCommand: gunicorn 'backend.app:create_app("production")'
+    startCommand: gunicorn --chdir backend \"app:create_app('production')\"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
