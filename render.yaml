@@ -25,13 +25,19 @@ services:
       - key: MAIL_USE_TLS
         value: "True"
       - key: MAIL_USERNAME
+        value: ""
       - key: MAIL_PASSWORD
+        value: ""
       # Google Books API - Add your value in the Render Dashboard
       - key: GOOGLE_BOOKS_API_KEY
+        value: ""
       # Stripe Configuration - Add your values in the Render Dashboard
       - key: STRIPE_SECRET_KEY
+        value: ""
       - key: STRIPE_PUBLISHABLE_KEY
+        value: ""
       - key: STRIPE_WEBHOOK_SECRET
+        value: ""
 
 databases:
   - name: sky-readers-haven-db
