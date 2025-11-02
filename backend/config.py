@@ -29,7 +29,6 @@ class Config:
     STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
     
     # Logging configuration
-    LOG_FILE = os.getenv('LOG_FILE', '/var/log/sky_readers_haven.log')
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
 
 class DevelopmentConfig(Config):
